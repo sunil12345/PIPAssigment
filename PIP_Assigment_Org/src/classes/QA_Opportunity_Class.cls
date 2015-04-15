@@ -1,4 +1,12 @@
-public with sharing class QA_Opportunity_Class {
+
+/**
+  Name: QA_Opportunity_Class
+  Description: Page for displaying the Q&A on page 
+  Created By: Sunil Pal
+  Last Modified By: Sunil Pal
+ */
+ 
+ public with sharing class QA_Opportunity_Class {
 
 	public String strOpportunityId				{get;set;}
 	public String strOpportunityName 			{get;set;}	
@@ -22,7 +30,8 @@ public with sharing class QA_Opportunity_Class {
 			
 		}
 	}
-
+	
+	//Constructor
 	public QA_Opportunity_Class(ApexPages.StandardController sc){
 		
 		lstQA_OpportunityWrapperClass = new List<QA_OpportunityWrapperClass>();
@@ -45,7 +54,14 @@ public with sharing class QA_Opportunity_Class {
 		queryRealtedProduct(strOpportunityId);
 	}
 	
+	/*
+		Name : queryRealtedProduct
+		Type:  private
+		Description: Fetching the required values from corresponding objects
+		Param: 1- OpportunityId
+		
 	
+	*/
 	private void queryRealtedProduct(String strOpportunityId) {
 		
 		Set<String> setOLI = new Set<String>();
