@@ -1,0 +1,18 @@
+<apex:page standardcontroller="Opportunity" extensions="QA_Opportunity_Class" >
+
+ 	<script type="text/javascript" src="{!URLFOR($Resource.Jquery)}"></script>
+    <script src="/soap/ajax/29.0/connection.js" type="text/javascript"></script>
+    
+    <script type="text/javascript" >   
+    
+    var $ = jQuery.noConflict();
+    
+    </script>
+    
+    
+    <apex:form >
+    
+    
+    	
+    </apex:form>
+</apex:page>
