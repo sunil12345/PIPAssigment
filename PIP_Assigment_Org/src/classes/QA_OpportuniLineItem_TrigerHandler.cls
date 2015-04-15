@@ -71,10 +71,8 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  		
  		for(OpportunityLineItem objOLI : mapOpportunityLineItem_New.values()) {
  			
- 			system.debug('*******objOLI********'+objOLI);
  			setOLIIProduct2d.add(objOLI.Product2Id);
  			
- 			system.debug('*****setOLIIProduct2d*******'+setOLIIProduct2d);
  			mapOpportunity_lstProductsId.put(objOLI.OpportunityId, new List<String>{objOLI.Product2Id});
  			
  		}
@@ -99,8 +97,6 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  			
 		}
 		
-		system.debug('*****mapProductGroupId_ProductQuestion*111******8'+mapProductGroupId_ProductQuestion);
-		
 		for(Question__c objQuestion : [	SELECT Id, Name, Question_Type__c, Question_Asked__c, Product_Group__c, Product_Group__r.Id
 										FROM Question__c
 										WHERE Product_Group__c In : setProductGroupId
@@ -121,18 +117,15 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 											
 		}
 		
-		system.debug('*****mapProductGroupId_ProductQuestion*222******8'+mapProductGroupId_ProductQuestion);
 		
 		for(String strValues : mapProductGroupId_ProductQuestion.keyset()) {
 			
-			system.debug('****strValues*11***'+strValues);
 			
 		}
 		
 		
 		for(List<String> strValues : mapProductGroupId_ProductQuestion.values()) {
 			
-			system.debug('****strValues**22**'+strValues);
 			
 		}
 		

@@ -1,18 +1,107 @@
 <apex:page standardcontroller="Opportunity" extensions="QA_Opportunity_Class" >
 
  	<script type="text/javascript" src="{!URLFOR($Resource.Jquery)}"></script>
-    <script src="/soap/ajax/29.0/connection.js" type="text/javascript"></script>
-    
+  
     <script type="text/javascript" >   
     
     var $ = jQuery.noConflict();
     
-    </script>
+     var QA_OPPORTUNITY = function(){
+     
+     	var init = function(strOpportunityId) {
+     		
+     		
+     		console.log('*****strOpportunityId****'+strOpportunityId);
+     	}
+     	
+     	var goToOpportunity = function(strOpportunityId) {
+     		
+     		window.open('/' + strOpportunityId);
+     	}
+     	return {
+            
+			init: init,
+			goToOpportunity : goToOpportunity
+        }        
+     }();
     
+	$(document).ready(function(){
+		console.log('enters');
+
+		QA_OPPORTUNITY.init('{!strOpportunityId}');
+            
+	});
+        
+        
+    </script>
+    <style>
+       
+    </style>
     
     <apex:form >
-    
-    
+    	<div>
+			<apex:outputPanel id="HeaderPanel">
+				<div> 
+					<span>
+	                	<b> <h1 id="heading" style="font-size: initial;"> 
+	                        Q And A For </h1> 
+		                    <apex:outPutPanel >
+							<a href="" onclick="QA_OPPORTUNITY.goToOpportunity('{!strOpportunityId}')" style="cursor:pointer; color:cornflowerblue; font-size: initial;">{!strOpportunityName}</a>
+		                    </apex:outPutPanel>
+	                     
+	                    </b>  
+					</span>
+				</div>
+			
+				<div style="padding-bottom: 5%;float: right;margin-right: 5%; " id="headingDiv">
+					<b> <h1 id="heading" style="font-size: initial;"> 
+	                        Indicator </h1> 
+	                <div >        
+                    	Question Answerd: <apex:inputField styleClass="required " label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="proerAnswer" /> 
+                    </div>
+                    <div >    
+                    	Question Pending:<apex:inputField styleClass="required " label="Question Pending" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="blankAnswer" />
+                    </div>
+                    </b>    
+				</div>
+			</apex:outputPanel>    
+    	</div>
+    	
+    	<apex:pageBlock title="Q&A" mode="edit" >
+    		
+    		<apex:outputPanel id="ErrorMessage" rendered="{!if(isOLIPresent == false, true, false)}">
+    			
+    			<div>
+    				<b> <h1 id="heading" style="font-size: initial;"> 
+    					
+    						NO PRODUCTS ARE AVAILABLE HERE!!!!!	
+    					</h1>
+    				</b>
+    			</div>
+    		</apex:outputPanel>
+    		
+    		<apex:outputPanel id="datePanel" rendered="{!if(isOLIPresent == true, true, false)}">
+	    		<apex:pageBlockTable value="{!lstQA_OpportunityWrapperClass}" var="item" >
+	    			
+	    			<apex:column>
+                           <apex:facet name="header">Product</apex:facet>
+                           <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" />
+                    </apex:column>
+                    
+                    <apex:column>
+                           <apex:facet name="header">Questions</apex:facet>
+                           <apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" />
+                    </apex:column>
+                    
+                    <apex:column>
+                           <apex:facet name="header">Answers</apex:facet>
+                           <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId" />
+                    </apex:column>
+                    
+                            
+	    		</apex:pageBlockTable>
+    		</apex:outputPanel>
+    	</apex:pageBlock>
     	
     </apex:form>
 </apex:page>
