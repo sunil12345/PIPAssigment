@@ -1,4 +1,4 @@
-<apex:page standardcontroller="Opportunity" extensions="QA_Opportunity_Class" sidebar="false" tabStyle="Opportunity" >
+<apex:page extensions="QA_Opportunity_Class" standardcontroller="Opportunity" sidebar="false"  >
 	
 	<img src="/s.gif" alt="Opportunity" class="pageTitleIcon" title="Opportunity"/>
 	
@@ -22,10 +22,21 @@
      		
      		window.open('/' + strOpportunityId);
      	}
+     	
+     	var SaveAnswer = function() {
+     	
+     	}
+     	
+     	var CancelAnswer = function() {
+     		
+     		
+     	}
      	return {
             
 			init: init,
-			goToOpportunity : goToOpportunity
+			goToOpportunity : goToOpportunity,
+			SaveAnswer : SaveAnswer,
+			CancelAnswer : CancelAnswer
         }        
      }();
     
@@ -55,7 +66,7 @@
 					<span>
 						
 	                	<b> <h1 id="heading" style="font-size: initial;"> 
-	                        Q And A For </h1> 
+	                        Questions And Answers For </h1> 
 		                    <apex:outPutPanel >
 							<a href="" onclick="QA_OPPORTUNITY.goToOpportunity('{!strOpportunityId}')" style="cursor:pointer; color:cornflowerblue; font-size: initial;">{!strOpportunityName}</a>
 		                    </apex:outPutPanel>
@@ -66,12 +77,12 @@
 			
 				<div style="padding-bottom: 5%;float: right;margin-right: 5%; " id="headingDiv">
 					<b> <h1 id="heading" style="font-size: initial;"> 
-	                        Indicator </h1> 
+	                       Status For Answerd/Unanswerd: </h1> 
 	                <div >        
-                    	Question Answerd: <apex:inputField styleClass="required " label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="proerAnswer" /> 
+                    	Questions Answerd: <apex:inputField styleClass="required " label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="proerAnswer" /> 
                     </div>
                     <div >    
-                    	Question Pending:<apex:inputField styleClass="required " label="Question Pending" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="blankAnswer" />
+                    	Questions Pending:<apex:inputField styleClass="required " label="Question Pending" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="blankAnswer" />
                     </div>
                     </b>    
 				</div>
@@ -80,74 +91,80 @@
     	
     	<apex:pageBlock title="Q&A" mode="edit" >
     		
-    		<apex:outputPanel id="ErrorMessage" rendered="{!if(isOLIPresent == false, true, false)}">
+    		 <apex:pageBlockButtons id="pageBlockButton" >
+    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.SaveAnswer()" value="Save" id="idButton_Save"/>
+    	 	
+    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.CancelAnswers()" value="Cancel" id="idButton_cancel"/>
+    	 	
+    	 	</apex:pageBlockButtons> 
+    	 
+    		<apex:outPutPanel id="ErrorMessage" rendered="{!if(isOLIPresent == false, true, false)}">
     			
     			<div>
     				<b> <h1 id="heading" style="font-size: initial;"> 
     					
-    						NO PRODUCTS ARE AVAILABLE HERE!!!!!	
-    					</h1>
+    						NO PRODUCTS ARE AVAILABLE HERE!!!!!	 
+    					</h1> 
     				</b>
     			</div>
-    		</apex:outputPanel>
+    		</apex:outPutPanel>
     		
-    		<apex:outputPanel id="datePanel" rendered="{!if(isOLIPresent == true, true, false)}">
-    				
-    				<div id="wrapper">
-    				
-				      <apex:repeat value="{!lstQA_OpportunityWrapperClass}" var="item">
-				        <div class="opportunity">
-				          <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" />
-				        </div>
-				        	
-				        <div>
-				        	<apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide"/>
-				        	
-				        	<Script>
-				        		var questionId = '{!item.objQuestion.Id}';
-				        		
-				        		var questionType = '{!item.objQuestion.Question_Type__c}';
-				        		
-				        		console.log('******1****'+questionId);
-				        		
-				        		console.log('******2*****'+questionType);
-				        		
-				        		if(questionType === 'Text' || questionType === 'text') {
-				        			
-				        			console.log('*******VAL***'+$('.questionType').val());
-				        		}
-				        		
-				        	</script>
-    	                    <apex:inputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!item.objQuestion.Question_Type__c}" rendered="{!If(item.objAnswer.Answer_Given__c == null, true, false)}"/>
-                            <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(item.objAnswer.Answer_Given__c != null, true, false)}"/>
+    		<apex:outPutPanel id="datePanel" rendered="{!if(isOLIPresent == true, true, false)}">
+   					<apex:outPutPanel >
+   						<apex:repeat value="{!mapProductName_Wrapper}" var="item">
+   							<div class="opportunity">
+   								<apex:outputText value="{!item}" id="productId" /> 
+   							</div>
+   							<apex:repeat value="{!mapProductName_Wrapper[item]}" var="values">
+   								<li>
+		                         	<p>
+		                         		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide"/>
+		                         		
+		                         		<p>
+		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}">
+		                         				
+		                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}"/>
+		                         			</apex:outPutPanel>
+		                         			
+		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}">
+		                         				<input type="radio" name="selectRadio" value="YES">YES </input>
+												<input type="radio" name="selectRadio" value="NO">NO </input>
+												
+<!-- 												<apex:selectRadio layout="pageDirection"> -->
+<!-- 											          <apex:selectOption itemLabel="Yes" itemValue="1"></apex:selectOption> -->
+<!-- 											          <apex:selectOption itemLabel="No" itemValue="2"></apex:selectOption> -->
+<!-- 											    </apex:selectRadio> -->
+      
+		                         			</apex:outPutPanel>
+		                         			
+		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='picklist',values.strType == 'Picklist'),true,false)}">
+		                         				
+		                         				<apex:selectList id="choseValue" value="{!strValueSelcted}" size="1">
+													<apex:selectOption itemValue="" itemLabel=""/>
+												</apex:selectList>
 
-				        </div>	
-				          
-				      </apex:repeat>
-				    </div>  
-    
-<!-- 	    		<apex:pageBlockTable value="{!lstQA_OpportunityWrapperClass}" var="item" > -->
-	    			
-<!-- 	    			<apex:column> -->
-<!--                            <apex:facet name="header">Product</apex:facet> -->
-<!--                            <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" /> -->
-<!--                     </apex:column> -->
-                    
-<!--                     <apex:column> -->
-<!--                            <apex:facet name="header">Questions</apex:facet> -->
-<!--                            <apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" /> -->
-<!--                     </apex:column> -->
-                    
-<!--                     <apex:column> -->
-<!--                            <apex:facet name="header">Answers</apex:facet> -->
-                           
-<!--                            <apex:inputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Proper" rendered="{!If(item.objAnswer.Answer_Given__c == null, true, false)}"/> -->
-<!--                            <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(item.objAnswer.Answer_Given__c != null, true, false)}"/> -->
-<!--                     </apex:column> -->
-                    
-<!-- 	    		</apex:pageBlockTable> -->
-    		</apex:outputPanel>
+<!-- 		                         				<apex:inputText value="{!values.objAnswer.Answer_Given__c}" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}"/> -->
+		                         			</apex:outPutPanel>
+		                         			
+		                         			
+		                         			<apex:outputText value="{!values.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(values.objAnswer.Answer_Given__c != null, true, false)}"/>
+		                         			
+		                         		</p>
+   									</p>
+   								</li>
+   							</apex:repeat>
+   						</apex:repeat>
+   					 
+   					
+<!-- 	                	<apex:repeat value="{!mapProductName_Wrapper}" var="items">  -->
+	                	
+<!-- 	                        	<apex:outputText value="{!items}" id="productId" /> -->
+<!--                 			<apex:repeat value="{!mapProductName_Wrapper[items]}" var="values"> -->
+                			
+<!--                 			</apex:repeat> -->
+<!-- 	                	</apex:repeat> -->
+					</apex:outPutPanel>
+    		</apex:outPutPanel>
     	</apex:pageBlock>
-    	
     </apex:form>
 </apex:page>

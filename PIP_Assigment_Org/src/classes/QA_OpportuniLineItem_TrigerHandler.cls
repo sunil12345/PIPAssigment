@@ -165,6 +165,7 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  		for(Product2 objProduct : [	SELECT Id, Name, Product_Group__c 
  									FROM Product2
  									WHERE Id IN : setOLIIProduct2d
+ 									AND Product_Group__c <> null
  									]) {
  			
  			mapProductId_GroupId.put(objProduct.Id, objProduct.Product_Group__c);
@@ -207,16 +208,19 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 			for(String strProductId : mapProductId_LstQuestion.keySet()) {
 			
 				List<String> lstQuestin =  mapProductId_LstQuestion.get(strProductId);
-			
-				for(String strQuestion : lstQuestin) {
+				
+				if(!lstQuestin.isEmpty()) {
 					
-					Answer__c objAnswerInsert = new Answer__c();
+					for(String strQuestion : lstQuestin) {
 					
-					objAnswerInsert.Realated_Products__c = strProductId;
-					objAnswerInsert.Question__c = strQuestion;
-					objAnswerInsert.Opportunity__c = strOpportunityId_Get;
-					
-					lstAnswerInsert.add(objAnswerInsert);
+						Answer__c objAnswerInsert = new Answer__c();
+						
+						objAnswerInsert.Realated_Products__c = strProductId;
+						objAnswerInsert.Question__c = strQuestion;
+						objAnswerInsert.Opportunity__c = strOpportunityId_Get;
+						
+						lstAnswerInsert.add(objAnswerInsert);
+					}
 				}
 			}		
 		}
