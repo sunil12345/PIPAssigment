@@ -24,12 +24,13 @@
      	}
      	
      	var SaveAnswer = function() {
-     	
+     		
+     		saveAnserRecords();
      	}
      	
      	var CancelAnswer = function() {
      		
-     		
+     		location.reload(true);
      	}
      	return {
             
@@ -60,6 +61,45 @@
     </style>
     
     <apex:form >
+    	
+    	<apex:actionstatus id="loading" startText="Requesting...">
+            <apex:facet name="start">
+                <div    id="salesforceSource_blurybackground" style="position:absolute; 
+                        left:1px; top:1px; width:100%; height:100%; text-align:center; 
+                        vertical-align: middle; background-color: #dcdcdc; opacity:0.7;
+                        filter:alpha(opacity=60);z-index: 999;">
+                </div>
+                <div id="ManageMembersViewport_loading" class="waitingSearchDiv" 
+                     style="width: 100%; height: 80%; display: ''; ">
+                            
+                    <div style="width: 144px;vertical-align: middle;" class="waitingHolder">
+                    
+                        <table  align="center" valign="top" style="width: 100%; height: 30%">
+                        
+                            <tr align="center" valign="top" style="width: 100%; height: 30%">
+                                    
+                                <td valign="top">
+                                    <img src="/img/loading.gif"/>
+                                    <span class="waitingDescription"><b>Loading...</b></span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div> 
+                </div>
+                    
+                <div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; height: 100%; display: ''; "/>
+                     
+                <script>
+                    document.getElementById('ManageMembersViewport_loading').height = window.innerHeight * (3/4);
+                </script>
+                
+            </apex:facet>
+            <apex:facet name="stop"></apex:facet>
+        </apex:actionstatus>
+        
+    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" onComplete="QA_OPPORTUNITY.CancelAnswer()">
+    	</apex:actionFunction>
+    
     	<div>
 			<apex:outputPanel id="HeaderPanel">
 				<div> 
@@ -94,7 +134,7 @@
     		 <apex:pageBlockButtons id="pageBlockButton" >
     	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.SaveAnswer()" value="Save" id="idButton_Save"/>
     	 	
-    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.CancelAnswers()" value="Cancel" id="idButton_cancel"/>
+    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.CancelAnswer()" value="Cancel" id="idButton_cancel"/>
     	 	
     	 	</apex:pageBlockButtons> 
     	 
@@ -118,36 +158,33 @@
    							<apex:repeat value="{!mapProductName_Wrapper[item]}" var="values">
    								<li>
 		                         	<p>
-		                         		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide"/>
-		                         		
+		                         		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide" />
 		                         		<p>
-		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}">
-		                         				
-		                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}"/>
+		                         			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}">
+		                         			
+			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}" style="padding-left: 5%;">
+			                         				
+			                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}" />
+			                         			</apex:outPutPanel>
+			                         			
+			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}" style="padding-left: 5%;">
+<!-- 			                         				<input type="radio" name="selectRadio" value="YES" >YES </input> -->
+<!-- 													<input type="radio" name="selectRadio" value="NO"  >NO </input> -->
+													<apex:selectRadio value="{!values.objAnswer.Answer_Given__c}">
+												          <apex:selectOption itemLabel="Yes" itemValue="YES"></apex:selectOption>
+												          <apex:selectOption itemLabel="No" itemValue="NO"></apex:selectOption>
+												    </apex:selectRadio>
+			                         			</apex:outPutPanel>
+			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='picklist',values.strType == 'Picklist'),true,false)}" style="padding-left: 5%;">
+			                         				
+			                         				<apex:selectList id="choseValue" value="{!strValueSelcted}" size="1" >
+														<apex:selectOptions value="{!lstSelectOPtion}" />
+													</apex:selectList>
+			                         			</apex:outPutPanel>
 		                         			</apex:outPutPanel>
-		                         			
-		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}">
-		                         				<input type="radio" name="selectRadio" value="YES">YES </input>
-												<input type="radio" name="selectRadio" value="NO">NO </input>
-												
-<!-- 												<apex:selectRadio layout="pageDirection"> -->
-<!-- 											          <apex:selectOption itemLabel="Yes" itemValue="1"></apex:selectOption> -->
-<!-- 											          <apex:selectOption itemLabel="No" itemValue="2"></apex:selectOption> -->
-<!-- 											    </apex:selectRadio> -->
-      
+		                         			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c != null, true, false)}">
+		                         				<apex:outputText value="{!values.objAnswer.Answer_Given__c}" id="answerId_Blank" style="padding-left: 5%;"/>
 		                         			</apex:outPutPanel>
-		                         			
-		                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='picklist',values.strType == 'Picklist'),true,false)}">
-		                         				
-		                         				<apex:selectList id="choseValue" value="{!strValueSelcted}" size="1">
-													<apex:selectOption itemValue="" itemLabel=""/>
-												</apex:selectList>
-
-<!-- 		                         				<apex:inputText value="{!values.objAnswer.Answer_Given__c}" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}"/> -->
-		                         			</apex:outPutPanel>
-		                         			
-		                         			
-		                         			<apex:outputText value="{!values.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(values.objAnswer.Answer_Given__c != null, true, false)}"/>
 		                         			
 		                         		</p>
    									</p>

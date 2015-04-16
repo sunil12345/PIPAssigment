@@ -10,7 +10,8 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 	
 	
 	public QA_OpportuniLineItem_TrigerHandler() {
-	
+		
+		// Do Nothing
 	}
 	
 	
@@ -162,10 +163,10 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  			
  		}
  		
- 		for(Product2 objProduct : [	SELECT Id, Name, Product_Group__c 
- 									FROM Product2
- 									WHERE Id IN : setOLIIProduct2d
- 									AND Product_Group__c <> null
+ 		for(Product2 objProduct : 	[	SELECT Id, Name, Product_Group__c 
+ 										FROM Product2
+ 										WHERE Id IN : setOLIIProduct2d
+ 										AND Product_Group__c <> null
  									]) {
  			
  			mapProductId_GroupId.put(objProduct.Id, objProduct.Product_Group__c);
@@ -181,26 +182,25 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 				mapGroupId_Question.get(objQuestion.Product_Group__c).add(objQuestion.Id);
 			}
 			
-			else {							
+			else {	
+										
 				mapGroupId_Question.put(objQuestion.Product_Group__c , new List<String>{objQuestion.Id});
 			}	
-			
 		}
 		
 		for(String strProductId : mapProductId_GroupId.keySet()) {
 			
+			String groupId = mapProductId_GroupId.get(strProductId);
+			
+			List<String> lstQuestionId = mapGroupId_Question.get(groupId);
+			
+			mapProductId_LstQuestion.put(strProductId,lstQuestionId);
+			
+			for(String strOpportunityIdFetch : mapOppId_OppProduct.keySet()) {
 				
-				String groupId = mapProductId_GroupId.get(strProductId);
+				mapOpportunityId_Product_Question.put(strOpportunityIdFetch, new Map<String, List<String>>(mapProductId_LstQuestion));
 				
-				List<String> lstQuestionId = mapGroupId_Question.get(groupId);
-				
-				mapProductId_LstQuestion.put(strProductId,lstQuestionId);
-				
-				for(String strOpportunityIdFetch : mapOppId_OppProduct.keySet()) {
-					
-					
-					mapOpportunityId_Product_Question.put(strOpportunityIdFetch, new Map<String, List<String>>(mapProductId_LstQuestion));
-				}
+			}
 		}
 		
 		for(String strOpportunityId_Get :  mapOpportunityId_Product_Question.keyset()) {
@@ -228,5 +228,4 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 		Database.SaveResult[] srList = Database.insert(lstAnswerInsert, false);	
 		
 	}
-		
 }
