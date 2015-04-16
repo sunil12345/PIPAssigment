@@ -27,14 +27,47 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  	
  	
  	/**
-  	 Name: onAfterUdapte
-  	 Description: On update of OpportunityLineItem need to update the answer records
-  	 Params: 1. map of newly insrted OpportunityLineItem
-  	 		 2. map of old insrted OpportunityLineItem
+  	 Name: onBeforeInsert
+  	 Description: On insert of OpportunityLineItem need to check the duplicate values
+  	 Params: 1. list of newly insrted OpportunityLineItem
  	*/
  	
- 	public void onAfterUdapte(map<Id, OpportunityLineItem> mapOpportunityLineItem_New, map<Id, OpportunityLineItem> mapOpportunityLineItem_Old) {
+ 	public void onBeforeInsert(List<OpportunityLineItem> lstOpportunityLineItem){
  		
+ 		Map<String, Set<String>> mapOpportunityId_LstProducts = new Map<String, Set<String>>();
+ 		Map<String, OpportunityLineItem> mapProductId_OLI = new Map<String, OpportunityLineItem>();
+ 		
+ 		for(OpportunityLineItem objOLI: lstOpportunityLineItem) {
+ 			
+ 			mapProductId_OLI.put(objOLI.Product2Id, objOLI);
+ 			
+ 			if(mapOpportunityId_LstProducts.containsKey(objOLI.OpportunityId)) {
+ 				
+ 				mapOpportunityId_LstProducts.get(objOLI.OpportunityId).add(objOLI.Product2Id);
+ 			}
+ 			else {
+ 				
+ 				mapOpportunityId_LstProducts.put(objOLI.OpportunityId, new Set<String>{objOLI.Product2Id});
+ 			}
+ 			
+ 		}
+ 		
+ 		for(OpportunityLineItem oLI : 	[	SELECT Id, Name, Product2Id, OpportunityId
+ 											FROM OpportunityLineItem
+ 											WHERE OpportunityId IN : mapOpportunityId_LstProducts.keySet()
+ 										]) {
+		
+			Set<String> setProductId = new Set<String>();
+			
+			setProductId.addAll(mapOpportunityId_LstProducts.get(oLI.OpportunityId));
+			
+			if(setProductId.contains(oLI.Product2Id)) {
+				
+				OpportunityLineItem OLIERROR = mapProductId_OLI.get(oLI.Product2Id);
+				
+				OLIERROR.addError('This Product Alreday Exist Under This Opportunity');
+			}
+		}
  	}
  	
  	/**
@@ -44,107 +77,152 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  	*/
  	
  	public void onBeforeDelete(map<Id,OpportunityLineItem> mapOpportunityLineItem_Old) {
- 		
+ 			
+ 			deleteAnswersRecords(mapOpportunityLineItem_Old);
  	}
  	
- 	private void createAnswerRecords(map<Id, OpportunityLineItem> mapOpportunityLineItem_New) {
- 		
- 		Set<String> setOLIIProduct2d = new Set<String>();
- 		Set<String> setProductId = new Set<String>();
- 		
- 		Set<String> setProductGroupId = new Set<String>();
- 		
- 		List<Answer__c> lstAnswerInsert = new List<Answer__c>();
- 		
- 		Map<String, String> mapAnswerId_OtherValues = new Map<String, String>(); // Used for check the values already present in Answer Object records
- 		
- 		Map<String, Question__c> mapQuestionId_Question = new Map<String, Question__c>();
- 		
- 		Map<String, List<String>> mapOpportunity_lstProductsId = new Map<String, List<String>>();
- 		
- 		Map<String, List<String>> mapQuestion_ProductGroup = new Map<String, List<String>>();
- 		
- 		Map<String, List<String>> mapProduct_ProductGroup = new Map<String, List<String>>(); // Used for making collection of produxt corresponding to product group
- 		
- 		Map<String, List<String>> mapProductGroupId_ProductQuestion = new Map<String, List<String>>();
+ 	/**
+  	 Name: deleteAnswersRecords
+  	 Description:  For deleting the Answers records associated with that OLI
+  	 Params:  1. map of old insrted OpportunityLineItem
+ 	*/
+ 	
+ 	private void deleteAnswersRecords(map<Id,OpportunityLineItem> mapOpportunityLineItem_Old) {
  		
  		
- 		for(OpportunityLineItem objOLI : mapOpportunityLineItem_New.values()) {
+ 		Map<String, Set<String>> mapOpportunityId_LstProducts = new Map<String, Set<String>>();
+ 		Map<String, OpportunityLineItem> mapProductId_OPPLI = new Map<String, OpportunityLineItem>(); 
+ 		
+ 		List<Answer__c> lstAnswerDelete = new List<Answer__c>();
+ 		
+ 		for(OpportunityLineItem OPPLI : mapOpportunityLineItem_Old.values()) {
  			
- 			setOLIIProduct2d.add(objOLI.Product2Id);
+ 			mapProductId_OPPLI.put(OPPLI.Product2Id, OPPLI);
  			
- 			mapOpportunity_lstProductsId.put(objOLI.OpportunityId, new List<String>{objOLI.Product2Id});
+ 			if(mapOpportunityId_LstProducts.containsKey(OPPLI.OpportunityId)) {
+ 				
+ 				mapOpportunityId_LstProducts.get(OPPLI.OpportunityId).add(OPPLI.Product2Id);
+ 			}
+ 			else {
+ 				
+ 				mapOpportunityId_LstProducts.put(OPPLI.OpportunityId, new Set<String>{OPPLI.Product2Id});
+ 			}
  			
  		}
  		
- 		for(Product2 objProduct : [	SELECT Id, Name, Product_Group__c, Product_Group__r.Id
+ 		
+ 		for(Answer__c objAnswer : 	[	SELECT Id, Name, Realated_Products__c, Opportunity__c
+ 										FROM Answer__c
+ 										WHERE Realated_Products__c IN : mapProductId_OPPLI.keySet()
+ 										AND Opportunity__c IN : mapOpportunityId_LstProducts.keySet()
+ 									]) {
+ 										
+ 			Set<String> setProductId = new Set<String>();
+			
+			setProductId.addAll(mapOpportunityId_LstProducts.get(objAnswer.Opportunity__c));
+			
+			if(setProductId.contains(objAnswer.Realated_Products__c)) {
+				
+				lstAnswerDelete.add(objAnswer);		
+			}							
+ 		}
+ 		
+ 		delete lstAnswerDelete;
+ 	}
+ 	
+ 	
+ 	/**
+  	 Name: createAnswerRecords
+  	 Description:  For creating the Answers reords without filling the answers value it will be cartession product type (OP1- P1,P2- PG1, Q1,Q2)
+  	 			1* 2*1*2 = 4
+  	 Params:  1. map of new insrted OpportunityLineItem
+ 	*/
+ 	private void createAnswerRecords(map<Id, OpportunityLineItem> mapOpportunityLineItem_New) {
+ 		
+ 		Set<String> setOLIIProduct2d = new Set<String>();
+ 		
+ 		List<Answer__c> lstAnswerInsert = new List<Answer__c>();
+ 		
+		Map<String, String> mapProductId_GroupId = new Map<String, String>();
+		
+		Map<String, List<String>> mapGroupId_Question =  new Map<String, List<String>>();
+		
+		Map<String, List<String>> mapProductId_LstQuestion =  new Map<String, List<String>>(); 
+		
+		Map<String, Map<String, List<String>>> mapOpportunityId_Product_Question = new Map<String, Map<String, List<String>>>();		
+ 		
+ 		Map<String, String> mapOppId_OppProduct = new Map<String, String>();
+ 		
+ 		Map<String, Answer__c> mapQuest_Answer = new Map<String, Answer__c>();
+ 		
+ 		for(OpportunityLineItem objOLI : mapOpportunityLineItem_New.values()) {
+ 			
+ 			mapOppId_OppProduct.put(objOLI.OpportunityId, objOLI.Product2Id);
+ 			setOLIIProduct2d.add(objOLI.Product2Id);
+ 			
+ 		}
+ 		
+ 		for(Product2 objProduct : [	SELECT Id, Name, Product_Group__c 
  									FROM Product2
  									WHERE Id IN : setOLIIProduct2d
  									]) {
  			
- 			setProductGroupId.add(objProduct.Product_Group__c);	
- 			setProductId.add(objProduct.Id);	
- 			if(mapProduct_ProductGroup.containsKey(objProduct.Product_Group__c)) {
- 				
- 				mapProduct_ProductGroup.get(objProduct.Product_Group__c).add(objProduct.Id);
- 				mapProductGroupId_ProductQuestion.get(objProduct.Product_Group__c).add(objProduct.Id);
- 			}
- 			else {
- 				
- 				mapProduct_ProductGroup.put(objProduct.Product_Group__c, new List<String>{objProduct.Id});
- 				mapProductGroupId_ProductQuestion.put(objProduct.Product_Group__c, new List<String>{objProduct.Id});	
- 			}
- 			
+ 			mapProductId_GroupId.put(objProduct.Id, objProduct.Product_Group__c);
 		}
 		
-		for(Question__c objQuestion : [	SELECT Id, Name, Question_Type__c, Question_Asked__c, Product_Group__c, Product_Group__r.Id
-										FROM Question__c
-										WHERE Product_Group__c In : setProductGroupId
-										])  {
+		for(Question__c objQuestion : 	[	SELECT Id, Name, Product_Group__c
+											FROM Question__c
+											WHERE Product_Group__c IN: mapProductId_GroupId.values()
+										]){
 			
-			mapQuestionId_Question.put(objQuestion.Id, objQuestion);
-			
-			if(mapProductGroupId_ProductQuestion.containsKey(objQuestion.Product_Group__c)) {
+			if(mapGroupId_Question.containsKey(objQuestion.Product_Group__c)) {
 				
-				mapProductGroupId_ProductQuestion.get(objQuestion.Product_Group__c).add(objQuestion.Id);
+				mapGroupId_Question.get(objQuestion.Product_Group__c).add(objQuestion.Id);
 			}
-			else {
+			
+			else {							
+				mapGroupId_Question.put(objQuestion.Product_Group__c , new List<String>{objQuestion.Id});
+			}	
+			
+		}
+		
+		for(String strProductId : mapProductId_GroupId.keySet()) {
+			
 				
-				mapProductGroupId_ProductQuestion.put(objQuestion.Product_Group__c, new List<String>{objQuestion.Id});
+				String groupId = mapProductId_GroupId.get(strProductId);
 				
-				mapQuestion_ProductGroup.put(objQuestion.Product_Group__c , new List<String>{objQuestion.Id});	
-			}
-											
+				List<String> lstQuestionId = mapGroupId_Question.get(groupId);
+				
+				mapProductId_LstQuestion.put(strProductId,lstQuestionId);
+				
+				for(String strOpportunityIdFetch : mapOppId_OppProduct.keySet()) {
+					
+					
+					mapOpportunityId_Product_Question.put(strOpportunityIdFetch, new Map<String, List<String>>(mapProductId_LstQuestion));
+				}
 		}
 		
-		
-		for(String strValues : mapProductGroupId_ProductQuestion.keyset()) {
+		for(String strOpportunityId_Get :  mapOpportunityId_Product_Question.keyset()) {
+				
+			for(String strProductId : mapProductId_LstQuestion.keySet()) {
 			
+				List<String> lstQuestin =  mapProductId_LstQuestion.get(strProductId);
 			
+				for(String strQuestion : lstQuestin) {
+					
+					Answer__c objAnswerInsert = new Answer__c();
+					
+					objAnswerInsert.Realated_Products__c = strProductId;
+					objAnswerInsert.Question__c = strQuestion;
+					objAnswerInsert.Opportunity__c = strOpportunityId_Get;
+					
+					lstAnswerInsert.add(objAnswerInsert);
+				}
+			}		
 		}
 		
+		Database.SaveResult[] srList = Database.insert(lstAnswerInsert, false);	
 		
-		for(List<String> strValues : mapProductGroupId_ProductQuestion.values()) {
-			
-			
-		}
+	}
 		
-		
-		for(Answer__c objAnser : [	SELECT Id, Name, Opportunity__c, Question__c, Realated_Products__c
-									FROM Answer__c
-									WHERE Opportunity__c IN: mapOpportunity_lstProductsId.keyset()
-									]) {
-		
-			mapAnswerId_OtherValues.put(objAnser.Id, objAnser.Opportunity__c+'--'+objAnser.Realated_Products__c+'--'+objAnser.Question__c);								
-		}
-		
-		
-		for(Question__c objQuestion : mapQuestionId_Question.values()) {
-			
-				Answer__c objAnswerInsert = new Answer__c();
-				objAnswerInsert.Realated_Products__c = objQuestion.Product_Group__c;
-				objAnswerInsert.Name = objQuestion.Name;
-				objAnswerInsert.Question__c = objQuestion.Id;
-		}
- 	}
 }

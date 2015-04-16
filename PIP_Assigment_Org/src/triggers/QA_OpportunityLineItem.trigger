@@ -5,8 +5,8 @@
   Last Modified By: Sunil Pal
  */
  
-
-trigger QA_OpportunityLineItem on OpportunityLineItem (after insert, after update, before delete) {
+ 
+trigger QA_OpportunityLineItem on OpportunityLineItem (after insert, before delete, before insert) {
 
 	QA_OpportuniLineItem_TrigerHandler objOLIHandler = new QA_OpportuniLineItem_TrigerHandler();
 	
@@ -16,14 +16,13 @@ trigger QA_OpportunityLineItem on OpportunityLineItem (after insert, after updat
 			
 			objOLIHandler.onAfterInsert(trigger.newMap);	
 		}
-		
-		if(trigger.isUpdate){
-			
-			objOLIHandler.onAfterUdapte(trigger.newMap,trigger.oldMap);
-		}
 	}
 	if(Trigger.isBefore) {
 		
+		if(trigger.isInsert) {
+			
+			objOLIHandler.onBeforeInsert(trigger.new);
+		}
 		if(trigger.isDelete){
 			
 			objOLIHandler.onBeforeDelete(trigger.oldMap);

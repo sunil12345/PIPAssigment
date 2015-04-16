@@ -1,7 +1,11 @@
-<apex:page standardcontroller="Opportunity" extensions="QA_Opportunity_Class" >
-
+<apex:page standardcontroller="Opportunity" extensions="QA_Opportunity_Class" sidebar="false" tabStyle="Opportunity" >
+	
+	<img src="/s.gif" alt="Opportunity" class="pageTitleIcon" title="Opportunity"/>
+	
  	<script type="text/javascript" src="{!URLFOR($Resource.Jquery)}"></script>
-  
+  	<apex:includeScript value="{!URLFOR($Resource.js, '/js/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.js, '/js/scroll.js')}"/>
+    
     <script type="text/javascript" >   
     
     var $ = jQuery.noConflict();
@@ -31,11 +35,17 @@
 		QA_OPPORTUNITY.init('{!strOpportunityId}');
             
 	});
-        
+	
         
     </script>
-    <style>
-       
+     <style>
+      .opportunity {
+        margin:20px 0px;
+        padding:10px;
+        font-size:18px;
+        background-color:#f7f7f7;
+        border:1px solid #ccc;
+      }
     </style>
     
     <apex:form >
@@ -43,6 +53,7 @@
 			<apex:outputPanel id="HeaderPanel">
 				<div> 
 					<span>
+						
 	                	<b> <h1 id="heading" style="font-size: initial;"> 
 	                        Q And A For </h1> 
 		                    <apex:outPutPanel >
@@ -81,25 +92,60 @@
     		</apex:outputPanel>
     		
     		<apex:outputPanel id="datePanel" rendered="{!if(isOLIPresent == true, true, false)}">
-	    		<apex:pageBlockTable value="{!lstQA_OpportunityWrapperClass}" var="item" >
+    				
+    				<div id="wrapper">
+    				
+				      <apex:repeat value="{!lstQA_OpportunityWrapperClass}" var="item">
+				        <div class="opportunity">
+				          <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" />
+				        </div>
+				        	
+				        <div>
+				        	<apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide"/>
+				        	
+				        	<Script>
+				        		var questionId = '{!item.objQuestion.Id}';
+				        		
+				        		var questionType = '{!item.objQuestion.Question_Type__c}';
+				        		
+				        		console.log('******1****'+questionId);
+				        		
+				        		console.log('******2*****'+questionType);
+				        		
+				        		if(questionType === 'Text' || questionType === 'text') {
+				        			
+				        			console.log('*******VAL***'+$('.questionType').val());
+				        		}
+				        		
+				        	</script>
+    	                    <apex:inputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!item.objQuestion.Question_Type__c}" rendered="{!If(item.objAnswer.Answer_Given__c == null, true, false)}"/>
+                            <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(item.objAnswer.Answer_Given__c != null, true, false)}"/>
+
+				        </div>	
+				          
+				      </apex:repeat>
+				    </div>  
+    
+<!-- 	    		<apex:pageBlockTable value="{!lstQA_OpportunityWrapperClass}" var="item" > -->
 	    			
-	    			<apex:column>
-                           <apex:facet name="header">Product</apex:facet>
-                           <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" />
-                    </apex:column>
+<!-- 	    			<apex:column> -->
+<!--                            <apex:facet name="header">Product</apex:facet> -->
+<!--                            <apex:outputText value="{!item.objAnswer.Realated_Products__r.Name}" id="productId" /> -->
+<!--                     </apex:column> -->
                     
-                    <apex:column>
-                           <apex:facet name="header">Questions</apex:facet>
-                           <apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" />
-                    </apex:column>
+<!--                     <apex:column> -->
+<!--                            <apex:facet name="header">Questions</apex:facet> -->
+<!--                            <apex:outputText value="{!item.objAnswer.Question__r.Question_Asked__c}" id="questionId" /> -->
+<!--                     </apex:column> -->
                     
-                    <apex:column>
-                           <apex:facet name="header">Answers</apex:facet>
-                           <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId" />
-                    </apex:column>
+<!--                     <apex:column> -->
+<!--                            <apex:facet name="header">Answers</apex:facet> -->
+                           
+<!--                            <apex:inputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Proper" rendered="{!If(item.objAnswer.Answer_Given__c == null, true, false)}"/> -->
+<!--                            <apex:outputText value="{!item.objAnswer.Answer_Given__c}" id="answerId_Blank" rendered="{!If(item.objAnswer.Answer_Given__c != null, true, false)}"/> -->
+<!--                     </apex:column> -->
                     
-                            
-	    		</apex:pageBlockTable>
+<!-- 	    		</apex:pageBlockTable> -->
     		</apex:outputPanel>
     	</apex:pageBlock>
     	
