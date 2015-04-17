@@ -202,9 +202,14 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 		
 		for(String strOpportunityId_Get :  mapOpportunityId_Product_Question.keyset()) {
 				
+				system.debug('*********strOpportunityId_Get********'+strOpportunityId_Get);
 			for(String strProductId : mapProductId_LstQuestion.keySet()) {
-			
+				
+				system.debug('*******strProductId********'+strProductId);
+				
 				List<String> lstQuestin =  mapProductId_LstQuestion.get(strProductId);
+				
+				system.debug('********lstQuestin******'+lstQuestin);
 				
 				if(!lstQuestin.isEmpty()) {
 					

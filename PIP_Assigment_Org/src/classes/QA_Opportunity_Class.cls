@@ -16,8 +16,6 @@
 	
 	public map<String, List<QA_OpportunityWrapperClass>> mapProductName_Wrapper 		{get;set;} // Used for getting the product name with associated Questions and answers
 	
-	public List<SelectOption> lstSelectOPtion			{get;set;}	// USed for dispalying the all the picklist value stored in question object
-	
 	/**
 	  Name: QA_OpportunityWrapperClass
 	  Description: Wrapper clas for combining and displaying the Answer, Object and their associated values in page side
@@ -30,15 +28,16 @@
 		public Question__c objQuestion  {get;set;}
 		public String strType			{get;set;}
 		public Boolean isAnswerd		{get;set;}
-		
-	
-		public QA_OpportunityWrapperClass(String strProductName, Answer__c objAnswer, Question__c objQuestion, String strType, Boolean isAnswerd) {
+		public List<SelectOption> lstSlectOption_Display 	{get;set;}	
+			
+		public QA_OpportunityWrapperClass(String strProductName, Answer__c objAnswer, Question__c objQuestion, String strType, Boolean isAnswerd, List<SelectOption> lstSlectOption_Display) {
 			
 			this.strProductName = strProductName;
 			this.objAnswer = objAnswer;
 			this.objQuestion = objQuestion;
 			this.strType = strType;
 			this.isAnswerd = isAnswerd;
+			this.lstSlectOption_Display = lstSlectOption_Display;
 		}
 	}
 
@@ -46,8 +45,6 @@
 	public QA_Opportunity_Class(ApexPages.StandardController sc){
 		
 		objOpportunity = new Opportunity();
-		
-		lstSelectOPtion = new List<SelectOption>();
 		
 		isOLIPresent = true;
 		
@@ -64,7 +61,6 @@
 		
 		queryRealtedProduct(strOpportunityId);
 		
-		getPickListValues();
 	}
 	
 	/*
@@ -77,135 +73,174 @@
 	*/
 	private void queryRealtedProduct(String strOpportunityId) {
 		
-		mapProductName_Wrapper  = new Map<String, List<QA_OpportunityWrapperClass>>();
-		
-		Set<String> setOLI = new Set<String>();		// Storing the product id under the OLI
-		
-		Set<String> setProductGroupId = new Set<String>(); // Storing the Product Group id present under the product
-		
-		Map<String, Question__c> mapQuestionId_Question = new Map<String, Question__c>();
-		
-		Map<String, Product2> mapProductId_Product = new Map<String, Product2>();
-		
-		String strObject_Type = '';
-		
-		for(OpportunityLineItem objOLI : 	[	SELECT Id, Name, Product2Id, OpportunityId
-												FROM OpportunityLineItem
-												WHERE OpportunityId =: strOpportunityId
-											]) {
-		
-			setOLI.add(objOLI.Product2Id);									
-		}
-		
-		if(setOLI.isEmpty()) {
+		try{
+				
+			mapProductName_Wrapper  = new Map<String, List<QA_OpportunityWrapperClass>>();
 			
-			isOLIPresent= false;
-		}
-		
-		for(Product2 objProduct : 	[	SELECT Id, Name, Product_Group__c, isActive
-										FROM Product2
-										WHERE Id IN:setOLI 
-									]){
+			Set<String> setOLI = new Set<String>();		// Storing the product id under the OLI
 			
-			mapProductId_Product.put(objProduct.Id, objProduct)	;
-									
-			setProductGroupId.add(objProduct.Product_Group__c);						
-		}
-		
-		for(Question__c objQuestion: 	[	SELECT Name, Question_Type__c, Question_Asked__c, Product_Group__c, PicklistValues__c, Id 
-											FROM Question__c 
-											WHERE Product_Group__c IN: setProductGroupId
-										]) {
+			Set<String> setProductGroupId = new Set<String>(); // Storing the Product Group id present under the product
 			
-			mapQuestionId_Question.put(objQuestion.Id, objQuestion);
-											
-		}
-		
-		for(Answer__c objAnswer : 	[	SELECT  Id, Name, Opportunity__c, Question__c, Realated_Products__c, Realated_Products__r.Name, 
-												Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.PicklistValues__c,
-												Question__r.Question_Type__c
-										FROM  Answer__c
-										WHERE Opportunity__c =: strOpportunityId
-										AND Question__c IN:mapQuestionId_Question.keyset()
-									]) {
+			Map<String, Question__c> mapQuestionId_Question = new Map<String, Question__c>();
+			
+			Map<String, Product2> mapProductId_Product = new Map<String, Product2>();
+			
+			String strObject_Type = '';
+			
+			for(OpportunityLineItem objOLI : 	[	SELECT Id, Name, Product2Id, OpportunityId
+													FROM OpportunityLineItem
+													WHERE OpportunityId =: strOpportunityId
+												]) {
+			
+				setOLI.add(objOLI.Product2Id);									
+			}
+			
+			if(setOLI.isEmpty()) {
+				
+				isOLIPresent= false;
+			}
+			
+			for(Product2 objProduct : 	[	SELECT Id, Name, Product_Group__c, isActive
+											FROM Product2
+											WHERE Id IN:setOLI 
+										]){
+				
+				mapProductId_Product.put(objProduct.Id, objProduct)	;
 										
-			if(mapProductId_Product.containskey(objAnswer.Realated_Products__c)){
-				
-				if(mapProductName_Wrapper.containsKey(objAnswer.Realated_Products__r.Name)) {
-					
-					List<QA_OpportunityWrapperClass> lstOfQA_On_OpportunityWrapper = mapProductName_Wrapper.get(objAnswer.Realated_Products__r.Name);
-				
-	      			lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false));
-	      			
-	      			mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, lstOfQA_On_OpportunityWrapper);
-	      			
-				}
-				else {
-				
-					QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false);
-					mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, new List<QA_OpportunityWrapperClass>{objNewWrapper});
-					
-				}
+				setProductGroupId.add(objProduct.Product_Group__c);						
 			}
-		}
-		
-	}
-	
-	/*
-		Name : getPickListValues
-		Type:  private
-		Description: Fetching the picklist values from QuestionObject
-	*/
-	
-	private void getPickListValues() {
-		
-  		Schema.SObjectType targetType = Schema.getGlobalDescribe().get('Question__c');//From the Object Api name retrieving the SObject
-  		
-    	Sobject Object_name = targetType.newSObject();
-    	
-  		Schema.sObjectType sobject_type = Object_name.getSObjectType(); //grab the sobject that was passed
-  		
-    	Schema.DescribeSObjectResult sobject_describe = sobject_type.getDescribe(); //describe the sobject
-    	
-    	Map<String, Schema.SObjectField> field_map = sobject_describe.fields.getMap(); //get a map of fields for the passed sobject
-    	
-    	List<Schema.PicklistEntry> pick_list_values = field_map.get('PicklistValues__c').getDescribe().getPickListValues(); //grab the list of picklist values for the passed field on the sobject
-    	
-    	
-    	SelectOption firstOption = new SelectOption('', ' - Select Options' + ' -');
-    	
-    	lstSelectOPtion.add(firstOption);
-    	
-    	for (Schema.PicklistEntry a : pick_list_values) { //for all values in the picklist list
-    		
-      		lstSelectOPtion.add(new SelectOption(a.getValue(),a.getValue()));
-      		
-   		}
-	}
-	
-	
-	public void saveRecords() {
-		
-		List<Answer__c> lstAnswer = new List<Answer__c>();	// List used to update the answer records on click of save
-		
-		for(List<QA_OpportunityWrapperClass> strQuestionValues : mapProductName_Wrapper.values()) {
 			
-			for(QA_OpportunityWrapperClass lstWrapper : strQuestionValues) {
+			for(Question__c objQuestion: 	[	SELECT Name, Question_Type__c, Question_Asked__c, Product_Group__c, PicklistValues__c, Id, Picklist_Values_Defined__c
+												FROM Question__c 
+												WHERE Product_Group__c IN: setProductGroupId
+											]) {
 				
-				if(lstWrapper.objAnswer.Answer_Given__c != null && lstWrapper.objAnswer.Answer_Given__c != '') {
+				mapQuestionId_Question.put(objQuestion.Id, objQuestion);
+												
+			}
+			
+			
+			for(Answer__c objAnswer : 	[	SELECT  Id, Name, Opportunity__c, Question__c, Realated_Products__c, Realated_Products__r.Name, 
+													Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.PicklistValues__c,
+													Question__r.Question_Type__c, Question__r.Picklist_Values_Defined__c
+											FROM  Answer__c
+											WHERE Opportunity__c =: strOpportunityId
+											AND Question__c IN:mapQuestionId_Question.keyset()
+										]) {
+				
+				List<SelectOption> lstSelectOPtion_AddValues = new List<SelectOption>();		
+									
+				if(mapProductId_Product.containskey(objAnswer.Realated_Products__c)){
 					
-					system.debug('****lstWrapper.objAnswer.Answer_Given__c*inside***'+lstWrapper.objAnswer.Answer_Given__c);
+					if(mapProductName_Wrapper.containsKey(objAnswer.Realated_Products__r.Name)) {
+						
+						List<QA_OpportunityWrapperClass> lstOfQA_On_OpportunityWrapper = mapProductName_Wrapper.get(objAnswer.Realated_Products__r.Name);
+						
+						system.debug('*********mapQuestionId_Question.get(objAnswer.Question__c)******'+mapQuestionId_Question.get(objAnswer.Question__c));
+						system.debug('**check*11***'+objAnswer.Question__r.Question_Type__c);
+						
+						system.debug('**check*22***'+objAnswer.Question__r.Picklist_Values_Defined__c);
+						if(objAnswer.Question__r.Question_Type__c == 'Picklist' || objAnswer.Question__r.Question_Type__c == 'picklist') {
+							
+							String strNewValues = objAnswer.Question__r.Picklist_Values_Defined__c;
+							if(strNewValues != null && strNewValues != '') {
+								
+								List<String> lstString_OPtionValues = new List<String>();
+								
+								lstString_OPtionValues.addAll(strNewValues.split('\n'));
+								
+								for(String strOPtionValues : lstString_OPtionValues) {
+									
+									system.debug('********strOPtionValues********'+strOPtionValues);
+									
+									lstSelectOPtion_AddValues.add(new SelectOption(strOPtionValues,strOPtionValues));
+								}
+							}
+						}
+						else {
+							
+							lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
+						}
+						
+		      			lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues));
+		      			
+		      			mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, lstOfQA_On_OpportunityWrapper);
+		      			
+					}
+					else {
+						
+						if(objAnswer.Question__r.Question_Type__c == 'Picklist' || objAnswer.Question__r.Question_Type__c == 'picklist') {
+							
+							String strNewValues = objAnswer.Question__r.Picklist_Values_Defined__c;
+							
+							if(strNewValues != null && strNewValues != '') {
+								
+								List<String> lstString_OPtionValues = new List<String>();
+								
+								lstString_OPtionValues.addAll(strNewValues.split('\n'));
+								
+								for(String strOPtionValues : lstString_OPtionValues) {
+									
+									lstSelectOPtion_AddValues.add(new SelectOption(strOPtionValues,strOPtionValues));
+								}						
+							}
+						}
+						else {
+							
+							lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
+						}
+						QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues);
+						mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, new List<QA_OpportunityWrapperClass>{objNewWrapper});
+						
+					}
 					
-					lstWrapper.objAnswer.isAnswerGiven__c = true;
+					system.debug('*********mapQuestionId_Question.get(objAnswer.Question__c)**222****'+mapQuestionId_Question.get(objAnswer.Question__c));
 				}
-				
-				lstAnswer.add(lstWrapper.objAnswer);
-				
-				system.debug('****lstAnswer****'+lstAnswer);
 			}
 		}
-		
-		update lstAnswer;
+		catch(Exception e) {
+			
+			system.debug('*****Exception****'+e);
+		}
 	}
 	
+	public void saveRecords(){
+		
+		
+		try{
+			
+			system.debug('*******IN***********');
+		
+			List<Answer__c> lstAnswer = new List<Answer__c>();	// List used to update the answer records on click of save button
+			
+			for(List<QA_OpportunityWrapperClass> strQuestionValues : mapProductName_Wrapper.values()) {
+				
+				system.debug('********8strQuestionValues********'+strQuestionValues);
+				
+				for(QA_OpportunityWrapperClass lstWrapper : strQuestionValues) {
+					
+					if(lstWrapper.objAnswer.Answer_Given__c != null && lstWrapper.objAnswer.Answer_Given__c != '') {
+						
+						system.debug('****lstWrapper.objAnswer.Answer_Given__c*inside***'+lstWrapper.objAnswer.Answer_Given__c);
+						
+						lstWrapper.objAnswer.isAnswerGiven__c = true;
+					}
+					
+					lstAnswer.add(lstWrapper.objAnswer);
+					
+					system.debug('****lstAnswer****'+lstAnswer);
+				}
+			}
+			
+			update lstAnswer;
+		}
+		
+		catch(Exception e) {
+			
+			System.debug('*****Exception*****'+e);
+		}
+			
+	}
+		
+		
 }
