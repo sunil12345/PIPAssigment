@@ -194,7 +194,7 @@
     		</apex:outPutPanel>
     	</apex:pageBlock>
     	
-    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" >
+    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" onComplete="QA_OPPORTUNITY.CancelAnswer()" >
     	</apex:actionFunction>
     	
     </apex:form>
