@@ -35,32 +35,35 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  	
  	public void onBeforeInsert(List<OpportunityLineItem> lstOpportunityLineItem){
  		
- 		Map<String, Set<String>> mapOpportunityId_LstProducts = new Map<String, Set<String>>();
- 		Map<String, OpportunityLineItem> mapProductId_OLI = new Map<String, OpportunityLineItem>();
+ 		Map<String, Set<String>> mapOpportunityId_setProducts = new Map<String, Set<String>>();	// Used for keeping the set of product id under one opportunity
  		
+ 		Map<String, OpportunityLineItem> mapProductId_OLI = new Map<String, OpportunityLineItem>();	// Used for storing the OLI associated with product
+ 		
+ 		// Iterating over the newly inserted OLI for getting the productId, opportunity Id
  		for(OpportunityLineItem objOLI: lstOpportunityLineItem) {
  			
  			mapProductId_OLI.put(objOLI.Product2Id, objOLI);
  			
- 			if(mapOpportunityId_LstProducts.containsKey(objOLI.OpportunityId)) {
+ 			if(mapOpportunityId_setProducts.containsKey(objOLI.OpportunityId)) {
  				
- 				mapOpportunityId_LstProducts.get(objOLI.OpportunityId).add(objOLI.Product2Id);
+ 				mapOpportunityId_setProducts.get(objOLI.OpportunityId).add(objOLI.Product2Id);
  			}
  			else {
  				
- 				mapOpportunityId_LstProducts.put(objOLI.OpportunityId, new Set<String>{objOLI.Product2Id});
+ 				mapOpportunityId_setProducts.put(objOLI.OpportunityId, new Set<String>{objOLI.Product2Id});
  			}
  			
  		}
  		
+ 		// Iterarting over the OLI for getting the alreday stored OLI and check whether the same OLI is present in the newly inserted OLI
  		for(OpportunityLineItem oLI : 	[	SELECT Id, Name, Product2Id, OpportunityId
  											FROM OpportunityLineItem
- 											WHERE OpportunityId IN : mapOpportunityId_LstProducts.keySet()
+ 											WHERE OpportunityId IN : mapOpportunityId_setProducts.keySet()
  										]) {
 		
 			Set<String> setProductId = new Set<String>();
 			
-			setProductId.addAll(mapOpportunityId_LstProducts.get(oLI.OpportunityId));
+			setProductId.addAll(mapOpportunityId_setProducts.get(oLI.OpportunityId));
 			
 			if(setProductId.contains(oLI.Product2Id)) {
 				
@@ -90,37 +93,35 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  	
  	private void deleteAnswersRecords(map<Id,OpportunityLineItem> mapOpportunityLineItem_Old) {
  		
+ 		Map<String, Set<String>> mapOpportunityId_setProducts = new Map<String, Set<String>>();		//Used for keeping the set of product id under one opportunity
+ 		Map<String, OpportunityLineItem> mapProductId_OPPLI = new Map<String, OpportunityLineItem>();	// Used for storing the OLI associated with product
  		
- 		Map<String, Set<String>> mapOpportunityId_LstProducts = new Map<String, Set<String>>();
- 		Map<String, OpportunityLineItem> mapProductId_OPPLI = new Map<String, OpportunityLineItem>(); 
- 		
- 		List<Answer__c> lstAnswerDelete = new List<Answer__c>();
+ 		List<Answer__c> lstAnswerDelete = new List<Answer__c>();	// Used for deleting the answer records as their asscociated OLI is deleted
  		
  		for(OpportunityLineItem OPPLI : mapOpportunityLineItem_Old.values()) {
  			
  			mapProductId_OPPLI.put(OPPLI.Product2Id, OPPLI);
  			
- 			if(mapOpportunityId_LstProducts.containsKey(OPPLI.OpportunityId)) {
+ 			if(mapOpportunityId_setProducts.containsKey(OPPLI.OpportunityId)) {
  				
- 				mapOpportunityId_LstProducts.get(OPPLI.OpportunityId).add(OPPLI.Product2Id);
+ 				mapOpportunityId_setProducts.get(OPPLI.OpportunityId).add(OPPLI.Product2Id);
  			}
  			else {
  				
- 				mapOpportunityId_LstProducts.put(OPPLI.OpportunityId, new Set<String>{OPPLI.Product2Id});
+ 				mapOpportunityId_setProducts.put(OPPLI.OpportunityId, new Set<String>{OPPLI.Product2Id});
  			}
  			
  		}
  		
- 		
  		for(Answer__c objAnswer : 	[	SELECT Id, Name, Realated_Products__c, Opportunity__c
  										FROM Answer__c
  										WHERE Realated_Products__c IN : mapProductId_OPPLI.keySet()
- 										AND Opportunity__c IN : mapOpportunityId_LstProducts.keySet()
+ 										AND Opportunity__c IN : mapOpportunityId_setProducts.keySet()
  									]) {
  										
  			Set<String> setProductId = new Set<String>();
 			
-			setProductId.addAll(mapOpportunityId_LstProducts.get(objAnswer.Opportunity__c));
+			setProductId.addAll(mapOpportunityId_setProducts.get(objAnswer.Opportunity__c));
 			
 			if(setProductId.contains(objAnswer.Realated_Products__c)) {
 				
@@ -140,8 +141,6 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  	*/
  	private void createAnswerRecords(map<Id, OpportunityLineItem> mapOpportunityLineItem_New) {
  		
- 		Set<String> setOLIIProduct2d = new Set<String>();
- 		
  		List<Answer__c> lstAnswerInsert = new List<Answer__c>();
  		
 		Map<String, String> mapProductId_GroupId = new Map<String, String>();
@@ -159,13 +158,11 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
  		for(OpportunityLineItem objOLI : mapOpportunityLineItem_New.values()) {
  			
  			mapOppId_OppProduct.put(objOLI.OpportunityId, objOLI.Product2Id);
- 			setOLIIProduct2d.add(objOLI.Product2Id);
- 			
  		}
  		
  		for(Product2 objProduct : 	[	SELECT Id, Name, Product_Group__c 
  										FROM Product2
- 										WHERE Id IN : setOLIIProduct2d
+ 										WHERE Id IN : mapOppId_OppProduct.values()
  										AND Product_Group__c <> null
  									]) {
  			

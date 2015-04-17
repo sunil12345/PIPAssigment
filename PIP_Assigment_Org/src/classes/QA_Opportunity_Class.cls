@@ -7,19 +7,16 @@
  
  public with sharing class QA_Opportunity_Class {
 
-	public String strOpportunityId				{get;set;}
-	public String strOpportunityName 			{get;set;}
-	public String strValueSelcted				{get;set;}
+	public String strOpportunityId				{get;set;}	// For stroing the OpportunityId of the page
+	public String strOpportunityName 			{get;set;}	// For Storing the Opportunity Name which is used for showing on page
 	 
-	public Opportunity objOpportunity			{get;set;}
+	public Opportunity objOpportunity			{get;set;}  // Used for displaying the Opprtunity Rollup fileds on page
 	
-	public Boolean isOLIPresent					{get;set;}
+	public Boolean isOLIPresent					{get;set;}	// Used for checking the if any OLI is available for this opportunity 
 	
-	public map<String, List<QA_OpportunityWrapperClass>> mapProductName_Wrapper 		{get;set;} // Used for getting the 
+	public map<String, List<QA_OpportunityWrapperClass>> mapProductName_Wrapper 		{get;set;} // Used for getting the product name with associated Questions and answers
 	
-	public List<SelectOption> lstSelectOPtion			{get;set;}
-	
-	public List<QA_OpportunityWrapperClass> lstQA_OpportunityWrapperClass = new List<QA_OpportunityWrapperClass>();
+	public List<SelectOption> lstSelectOPtion			{get;set;}	// USed for dispalying the all the picklist value stored in question object
 	
 	/**
 	  Name: QA_OpportunityWrapperClass
@@ -48,11 +45,10 @@
 	//Constructor
 	public QA_Opportunity_Class(ApexPages.StandardController sc){
 		
-		strValueSelcted = '';
-		
 		objOpportunity = new Opportunity();
 		
 		lstSelectOPtion = new List<SelectOption>();
+		
 		isOLIPresent = true;
 		
 		strOpportunityId = ApexPages.currentPage().getParameters().get('Idd');
@@ -83,9 +79,9 @@
 		
 		mapProductName_Wrapper  = new Map<String, List<QA_OpportunityWrapperClass>>();
 		
-		Set<String> setOLI = new Set<String>();
+		Set<String> setOLI = new Set<String>();		// Storing the product id under the OLI
 		
-		Set<String> setProductGroupId = new Set<String>();
+		Set<String> setProductGroupId = new Set<String>(); // Storing the Product Group id present under the product
 		
 		Map<String, Question__c> mapQuestionId_Question = new Map<String, Question__c>();
 		
@@ -190,26 +186,15 @@
 	
 	public void saveRecords() {
 		
-		
-		List<Answer__c> lstAnswer = new List<Answer__c>();
+		List<Answer__c> lstAnswer = new List<Answer__c>();	// List used to update the answer records on click of save
 		
 		for(List<QA_OpportunityWrapperClass> strQuestionValues : mapProductName_Wrapper.values()) {
 			
-			system.debug('*******strQuestionValues*******8'+strQuestionValues);
-			
 			for(QA_OpportunityWrapperClass lstWrapper : strQuestionValues) {
-				
-				system.debug('*******strQuestionValues**'+lstWrapper);
-				
-				system.debug('*******strQuestionValues**'+lstWrapper.objAnswer);
-				
-				system.debug('*********lstWrapper.objAnswer.Answer_Given__c******'+lstWrapper.objAnswer.Answer_Given__c);
 				
 				if(lstWrapper.objAnswer.Answer_Given__c != null && lstWrapper.objAnswer.Answer_Given__c != '') {
 					
-					
 					system.debug('****lstWrapper.objAnswer.Answer_Given__c*inside***'+lstWrapper.objAnswer.Answer_Given__c);
-					
 					
 					lstWrapper.objAnswer.isAnswerGiven__c = true;
 				}
