@@ -48,21 +48,13 @@
 		
 		isOLIPresent = true;
 		
-		system.debug('******isOLIPresent******'+isOLIPresent);
-		
-		system.debug('********strOpportunityId**2222*****'+strOpportunityId);
-		
 		strOpportunityId = ApexPages.currentPage().getParameters().get('Idd');
-		
-		system.debug('********strOpportunityId*******'+strOpportunityId);
 		
 		Opportunity objOpportunityQuery = 	[	SELECT Id, Name,Calculate_BlankQuestion__c, Calculate_ProperAnswer__c
 												FROM Opportunity
 												WHERE Id =: strOpportunityId
 											 ];
 		
-		system.debug('*********objOpportunityQuery*********'+objOpportunityQuery);
-											 
 		strOpportunityName = objOpportunityQuery.Name;
 		
 		objOpportunity = objOpportunityQuery;
@@ -76,8 +68,6 @@
 		Type:  private
 		Description: Fetching the required values from corresponding objects
 		Param: 1- OpportunityId
-		
-	
 	*/
 	private void queryRealtedProduct(String strOpportunityId) {
 		
@@ -127,7 +117,6 @@
 												
 			}
 			
-			
 			for(Answer__c objAnswer : 	[	SELECT  Id, Name, Opportunity__c, Question__c, Realated_Products__c, Realated_Products__r.Name, 
 													Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.PicklistValues__c,
 													Question__r.Question_Type__c, Question__r.Picklist_Values_Defined__c
@@ -144,10 +133,6 @@
 						
 						List<QA_OpportunityWrapperClass> lstOfQA_On_OpportunityWrapper = mapProductName_Wrapper.get(objAnswer.Realated_Products__r.Name);
 						
-						system.debug('*********mapQuestionId_Question.get(objAnswer.Question__c)******'+mapQuestionId_Question.get(objAnswer.Question__c));
-						system.debug('**check*11***'+objAnswer.Question__r.Question_Type__c);
-						
-						system.debug('**check*22***'+objAnswer.Question__r.Picklist_Values_Defined__c);
 						if(objAnswer.Question__r.Question_Type__c == 'Picklist' || objAnswer.Question__r.Question_Type__c == 'picklist') {
 							
 							String strNewValues = objAnswer.Question__r.Picklist_Values_Defined__c;
@@ -158,8 +143,6 @@
 								lstString_OPtionValues.addAll(strNewValues.split('\n'));
 								
 								for(String strOPtionValues : lstString_OPtionValues) {
-									
-									system.debug('********strOPtionValues********'+strOPtionValues);
 									
 									lstSelectOPtion_AddValues.add(new SelectOption(strOPtionValues,strOPtionValues));
 								}
@@ -196,13 +179,12 @@
 						else {
 							
 							lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
+							
 						}
 						QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues);
 						mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, new List<QA_OpportunityWrapperClass>{objNewWrapper});
 						
 					}
-					
-					system.debug('*********mapQuestionId_Question.get(objAnswer.Question__c)**222****'+mapQuestionId_Question.get(objAnswer.Question__c));
 				}
 			}
 		}
@@ -212,30 +194,31 @@
 		}
 	}
 	
+	
+	/*
+		Name : saveRecords
+		Type:  public
+		Description: Update the answer records with answer values associated with those records.
+	*/
+	
 	public void saveRecords(){
 		
 		try{
-			
-			system.debug('*******IN***********');
 			
 			List<Answer__c> lstAnswer = new List<Answer__c>();	// List used to update the answer records on click of save button
 			
 			for(List<QA_OpportunityWrapperClass> strQuestionValues : mapProductName_Wrapper.values()) {
 				
-				system.debug('********8strQuestionValues********'+strQuestionValues);
-				
 				for(QA_OpportunityWrapperClass lstWrapper : strQuestionValues) {
 					
 					if(lstWrapper.objAnswer.Answer_Given__c != null && lstWrapper.objAnswer.Answer_Given__c != '') {
 						
-						system.debug('****lstWrapper.objAnswer.Answer_Given__c*inside***'+lstWrapper.objAnswer.Answer_Given__c);
-						
 						lstWrapper.objAnswer.isAnswerGiven__c = true;
+						
 					}
 					
 					lstAnswer.add(lstWrapper.objAnswer);
 					
-					system.debug('****lstAnswer****'+lstAnswer);
 				}
 			}
 			

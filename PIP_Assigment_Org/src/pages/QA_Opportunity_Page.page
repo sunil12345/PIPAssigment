@@ -34,16 +34,12 @@
      		location.reload(true);
      	}
      	
-     	var returnAfterComplete = function() {
-     		
-     	}
      	return {
             
 			init: init,
 			goToOpportunity : goToOpportunity,
 			SaveAnswer : SaveAnswer,
-			CancelAnswer : CancelAnswer,
-			returnAfterComplete : returnAfterComplete
+			CancelAnswer : CancelAnswer
         }        
      }();
     
@@ -198,7 +194,7 @@
     		</apex:outPutPanel>
     	</apex:pageBlock>
     	
-    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" onComplete="QA_OPPORTUNITY.returnAfterComplete();"  >
+    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" >
     	</apex:actionFunction>
     	
     </apex:form>
