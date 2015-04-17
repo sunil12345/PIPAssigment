@@ -48,12 +48,20 @@
 		
 		isOLIPresent = true;
 		
+		system.debug('******isOLIPresent******'+isOLIPresent);
+		
+		system.debug('********strOpportunityId**2222*****'+strOpportunityId);
+		
 		strOpportunityId = ApexPages.currentPage().getParameters().get('Idd');
+		
+		system.debug('********strOpportunityId*******'+strOpportunityId);
 		
 		Opportunity objOpportunityQuery = 	[	SELECT Id, Name,Calculate_BlankQuestion__c, Calculate_ProperAnswer__c
 												FROM Opportunity
 												WHERE Id =: strOpportunityId
 											 ];
+		
+		system.debug('*********objOpportunityQuery*********'+objOpportunityQuery);
 											 
 		strOpportunityName = objOpportunityQuery.Name;
 		
@@ -206,11 +214,10 @@
 	
 	public void saveRecords(){
 		
-		
 		try{
 			
 			system.debug('*******IN***********');
-		
+			
 			List<Answer__c> lstAnswer = new List<Answer__c>();	// List used to update the answer records on click of save button
 			
 			for(List<QA_OpportunityWrapperClass> strQuestionValues : mapProductName_Wrapper.values()) {

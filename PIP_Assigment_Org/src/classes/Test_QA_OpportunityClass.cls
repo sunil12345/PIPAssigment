@@ -22,7 +22,7 @@
 @isTest(seeAllData=true)
 private class Test_QA_OpportunityClass {
 
-    static testMethod void test_QA_OpportunityHandler_BeforeInsert() {
+    /*static testMethod void test_QA_OpportunityHandler_BeforeInsert() {
         
         List<Opportunity> lstOpportunity = new List<Opportunity>();
         
@@ -47,7 +47,7 @@ private class Test_QA_OpportunityClass {
         							}; 
         
         insert lstProduct;
-        */
+        
         
          //get standard pricebook
 		Pricebook2  standardPb = [select id, name, isActive from Pricebook2 where IsStandard = true limit 1];
@@ -86,7 +86,7 @@ private class Test_QA_OpportunityClass {
     	);
     	
     	insert pbEntry_Next ;
-    	*/
+    	
     	
     	List<OpportunityLineItem> lstOLIs = new List<OpportunityLineItem>{
                                                     new OpportunityLineItem(OpportunityId = lstOpportunity[0].Id, Quantity = 2, UnitPrice = 150,  PricebookEntryId = pbe1 .Id)
@@ -109,6 +109,65 @@ private class Test_QA_OpportunityClass {
         										new Question__c(Name='Test_Question1', Question_Type__c = 'Text',Product_Group__c = lstProductGroup[0].Id, Question_Asked__c = 'Testing' ),
         										new Question__c(Name='Test_Question1', Question_Type__c = 'Text',Product_Group__c = lstProductGroup[1].Id, Question_Asked__c = 'Testing 456' )
         										};	
-		insert lstQuestion;*/
+		insert lstQuestion;
+    }*/
+    
+   static testMethod void test_QA_Opportunity_Class() {
+    	
+    	test.startTest();
+    	
+        Opportunity ObjOpportunity = new Opportunity( Name= 'Test_Opportunity', CloseDate= Date.Today().addDays(2), StageName = 'Closed Won');
+        
+        insert ObjOpportunity;
+        
+        
+        List<Product_Group__c > lstProductGroup = 	new List<Product_Group__c>{
+        													new Product_Group__c(Name = 'TestGroup'),
+        													new Product_Group__c(Name = 'TestGroup1')
+        											};
+      	insert  lstProductGroup;	
+      	
+        Product2 testprd1 = new Product2 (Name='Test Product Entry 1',Description='Test Product Entry 1',productCode = 'ABC', isActive = true, Product_Group__c = lstProductGroup[0].Id);
+		insert testprd1;
+		
+		Pricebook2  standardPb = [select id, name, isActive from Pricebook2 where IsStandard = true limit 1];
+		
+		Product2 testprd2 = new Product2 (Name='Test Product Entry 2',Description='Test Product Entry 2',productCode = 'ABCD', isActive = true, Product_Group__c = lstProductGroup[0].Id);
+		insert testprd2;
+		
+		List<PricebookEntry> lstPriceBookEntries = new List<PricebookEntry>();
+        lstPriceBookEntries = [Select Id, ProductCode from PricebookEntry where ProductCode <> null and isActive = True];
+        
+        List<OpportunityLineItem> lstOLIs = new List<OpportunityLineItem>{
+                                                    new OpportunityLineItem(OpportunityId = ObjOpportunity.Id, Quantity = 2, UnitPrice = 150,  PricebookEntryId = lstPriceBookEntries[0].Id)
+                                                    };
+                                                    
+        insert lstOLIs;
+        
+        
+        ApexPages.currentPage().getParameters().put('Idd', ObjOpportunity.Id);
+        
+        ApexPages.StandardController sc = new ApexPages.standardController(ObjOpportunity);
+        QA_Opportunity_Class objOpportunity_QA_Class = new QA_Opportunity_Class(sc);
+        objOpportunity_QA_Class.strOpportunityId = ObjOpportunity.Id;
+        
+    	objOpportunity_QA_Class.strOpportunityName = ObjOpportunity.Name;
+    	
+    	objOpportunity_QA_Class.isOLIPresent = true;
+    	
+    	
+    	ApexPages.StandardController sc1 = new ApexPages.standardController(ObjOpportunity);
+    	
+    	QA_Opportunity_Class objOpportunity_QA_Class1 = new QA_Opportunity_Class(sc1);
+        objOpportunity_QA_Class1.strOpportunityId = ObjOpportunity.Id;
+        
+    	objOpportunity_QA_Class1.strOpportunityName = ObjOpportunity.Name;
+    	
+    	objOpportunity_QA_Class1.isOLIPresent = false;
+    	
+    	
+    	test.stopTest();  
+    	
     }
+    
 }
