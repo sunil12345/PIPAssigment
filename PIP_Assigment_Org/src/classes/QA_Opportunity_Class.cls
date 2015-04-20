@@ -143,7 +143,7 @@
                 setProductGroupId.add(objProduct.Product_Group__c);                     
             }
             
-            for(Question__c objQuestion:    [   SELECT Name, Question_Type__c, Question_Asked__c, Product_Group__c, PicklistValues__c, Id, Picklist_Values_Defined__c
+            for(Question__c objQuestion:    [   SELECT Name, Question_Asked__c, Product_Group__c, Id, Picklist_Values_Defined__c, Question_Type_Picklist__c
                                                 FROM Question__c 
                                                 WHERE Product_Group__c IN: setProductGroupId
                                             ]) {
@@ -155,8 +155,8 @@
             setQuestionId.addAll(mapQuestionId_Question.keyset());
             
             String strQuery = 'SELECT  Id, Name, Opportunity__c, Question__c, Realated_Products__c, Realated_Products__r.Name, '+ 
-                              'Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.PicklistValues__c, '+
-                              'Question__r.Question_Type__c, Question__r.Picklist_Values_Defined__c '+
+                              'Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.Question_Type_Picklist__c, '+
+                              'Question__r.Picklist_Values_Defined__c '+
                               'FROM  Answer__c '+
                               'WHERE Opportunity__c =: strOpportunityId '+
                               'AND Question__c IN : setQuestionId';    
@@ -180,7 +180,7 @@
                         
                         List<QA_OpportunityWrapperClass> lstOfQA_On_OpportunityWrapper = mapProductName_Wrapper.get(objAnswer.Realated_Products__r.Name);
                         
-                        if(objAnswer.Question__r.Question_Type__c == 'Picklist' || objAnswer.Question__r.Question_Type__c == 'picklist') {
+                        if(objAnswer.Question__r.Question_Type_Picklist__c == 'Picklist' ) {
                             
                             String strNewValues = objAnswer.Question__r.Picklist_Values_Defined__c;
                             
@@ -207,14 +207,14 @@
                             lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
                         }
                         
-                        lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues));
+                        lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type_Picklist__c, false, lstSelectOPtion_AddValues));
                         
                         mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, lstOfQA_On_OpportunityWrapper);
                         
                     }
                     else {
                         
-                        if(objAnswer.Question__r.Question_Type__c == 'Picklist' || objAnswer.Question__r.Question_Type__c == 'picklist') {
+                        if(objAnswer.Question__r.Question_Type_Picklist__c == 'Picklist' ) {
                             
                             String strNewValues = objAnswer.Question__r.Picklist_Values_Defined__c;
                             
@@ -241,7 +241,7 @@
                             lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
                         }
                         
-                        QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues);
+                        QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type_Picklist__c, false, lstSelectOPtion_AddValues);
                         mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, new List<QA_OpportunityWrapperClass>{objNewWrapper});
                         
                     }

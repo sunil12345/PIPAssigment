@@ -59,10 +59,10 @@ private class Test_QA_OpportunityClass {
         insert lstOLIs;
         
         List<Question__c> lstQuestion = new List<Question__c> { 
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type__c = 'text'),
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type__c = 'picklist'),
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type__c = 'radio'),
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type__c = 'text')
+        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type_Picklist__c = 'Text'),
+        								new Question__c(Name='Test_question2', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type_Picklist__c = 'Picklist'),
+        								new Question__c(Name='Test_question3', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type_Picklist__c = 'Radio'),
+        								new Question__c(Name='Test_question4', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type_Picklist__c = 'Text')
         };
         
         insert lstQuestion;
@@ -71,8 +71,8 @@ private class Test_QA_OpportunityClass {
 			        							FROM Answer__c
 			        							WHERE Opportunity__c =: ObjOpportunity.Id
 			        						];
-			        						
-        system.assertEquals(lstAnswer_Query.size(), 3);  // Assert 
+		
+        system.assertEquals(lstAnswer_Query.size(),2);  // Assert 
         
         delete lstOLIs;
     	
@@ -100,22 +100,39 @@ private class Test_QA_OpportunityClass {
         
         ApexPages.StandardController sc = new ApexPages.standardController(ObjOpportunity);
         QA_Opportunity_Class objOpportunity_QA_Class = new QA_Opportunity_Class(sc);
-        objOpportunity_QA_Class.strOpportunityId = ObjOpportunity.Id;
-        
-    	objOpportunity_QA_Class.strOpportunityName = ObjOpportunity.Name;
+       	objOpportunity_QA_Class.queryRealtedAnswer();
     	
     	objOpportunity_QA_Class.isOLIPresent = true;
+    	
+    	List<SelectOption> lstSelectOption = new List<SelectOption>();
+    	SelectOption firstOption = new SelectOption('', 'None');
+    	lstSelectOption.add(firstOption);
+    	
+    	QA_Opportunity_Class.QA_OpportunityWrapperClass objWrapperClass = new QA_Opportunity_Class.QA_OpportunityWrapperClass(testprd1.Name, lstAnswer[0], lstQuestion[0], 'Text', true, lstSelectOption);
+    	
+    	lstSelectOption = new List<SelectOption>();
+    	SelectOption firstOptionPicklist = new SelectOption('Test', 'Test');
+    	lstSelectOption.add(firstOptionPicklist);
+    	
+    	QA_Opportunity_Class.QA_OpportunityWrapperClass objWrapperClass1 = new QA_Opportunity_Class.QA_OpportunityWrapperClass(testprd1.Name, lstAnswer[1], lstQuestion[1], 'Picklist', true, lstSelectOption);
+    	
+    	QA_Opportunity_Class.QA_OpportunityWrapperClass objWrapperClass2 = new QA_Opportunity_Class.QA_OpportunityWrapperClass(testprd2.Name, lstAnswer[1], lstQuestion[2], 'Radio', true, lstSelectOption);
+    	
+    	QA_Opportunity_Class.QA_OpportunityWrapperClass objWrapperClass3 = new QA_Opportunity_Class.QA_OpportunityWrapperClass(testprd2.Name, lstAnswer[0], lstQuestion[3], 'text', true, lstSelectOption);
     	
     	objOpportunity_QA_Class.saveRecords();
     	
     	
+    	List<Answer__c> lstAnswer_Query_Check = 	[	SELECT Id, Name, Opportunity__c, Answer_Given__c 
+					        							FROM Answer__c
+					        							WHERE Opportunity__c =: ObjOpportunity.Id
+					        							AND isAnswerGiven__c = false
+			        								];
+    	
     	ApexPages.StandardController sc1 = new ApexPages.standardController(ObjOpportunity);
     	
     	QA_Opportunity_Class objOpportunity_QA_Class1 = new QA_Opportunity_Class(sc1);
-        objOpportunity_QA_Class1.strOpportunityId = ObjOpportunity.Id;
         
-    	objOpportunity_QA_Class1.strOpportunityName = ObjOpportunity.Name;
-    	
     	objOpportunity_QA_Class1.isOLIPresent = false;
     	
     	test.stopTest();  

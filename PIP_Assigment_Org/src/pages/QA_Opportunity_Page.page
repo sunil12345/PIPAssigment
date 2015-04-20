@@ -233,7 +233,7 @@
 		            	           			<p>
 			                	       			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}">
 				                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}" style="padding-left: 5%;">
-			                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}" />
+			                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type_Picklist__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}" />
 				                         		</apex:outPutPanel>
 				                         			
 			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}" style="padding-left: 5%;">
