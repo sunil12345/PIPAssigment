@@ -11,13 +11,13 @@
     
     public Boolean isOLIPresent                 {get;set;}  // Used for checking the if any OLI is available for this opportunity 
     
-    public Boolean hasError                 {get;set;}  // Used for checking the if any OLI is available for this opportunity
+    public Boolean hasError                 	{get;set;}  // Used for checking the if any OLI is available for this opportunity
     
     public String strGetStatus						{get;set;}
     
     public map<String, List<QA_OpportunityWrapperClass>> mapProductName_Wrapper         {get;set;} // Used for getting the product name with associated Questions and answers
     
-    public Integer intSumTotalQuestion		{get;set;}
+    public Integer intSumTotalQuestion					{get;set;} // For summation of pending and answerd done 
     
     public List<SelectOption> lstSelectOPtion           {get;set;}  // USed for dispalying the all the picklist value stored in question object
     
@@ -25,6 +25,7 @@
     
     private Map<String, Question__c> mapQuestionId_Question = new Map<String, Question__c>();
     private Map<String, Product2> mapProductId_Product = new Map<String, Product2>();
+    
     /**
       Name: QA_OpportunityWrapperClass
       Description: Wrapper clas for combining and displaying the Answer, Object and their associated values in page side
@@ -38,9 +39,8 @@
         public String strType           {get;set;}
         public Boolean isAnswerd        {get;set;}
         public List<SelectOption> lstSlectOption_Display    {get;set;}  
-        public String strSelectedValue                      {get;set;}
             
-        public QA_OpportunityWrapperClass(String strProductName, Answer__c objAnswer, Question__c objQuestion, String strType, Boolean isAnswerd, List<SelectOption> lstSlectOption_Display, String strSelectedValue) {
+        public QA_OpportunityWrapperClass(String strProductName, Answer__c objAnswer, Question__c objQuestion, String strType, Boolean isAnswerd, List<SelectOption> lstSlectOption_Display) {
             
             this.strProductName = strProductName;
             this.objAnswer = objAnswer;
@@ -48,7 +48,6 @@
             this.strType = strType;
             this.isAnswerd = isAnswerd;
             this.lstSlectOption_Display = lstSlectOption_Display;
-            this.strSelectedValue = strSelectedValue;
         }
     }
 
@@ -84,7 +83,6 @@
 	         	                                                                        FROM Opportunity
 	          	                                                                        WHERE Id =: strOpportunityId
 	           	                                         							]);
-	    		
 	    		if(lstOpportunityQuery.isEmpty()) {
 	    			
 	    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, 'Opportuninty Id is not correct. Please use correct Id'));
@@ -117,7 +115,7 @@
             
             Set<String> setProductIds = new Set<String>();     // Storing the product id under the OLI
             Set<String> setProductGroupId = new Set<String>(); // Storing the Product Group id present under the product
-            Set<String> setQuestionId = new Set<String>();
+            Set<String> setQuestionId = new Set<String>();	// Storing the Question id present under the product group
             
             String strObject_Type = '';
             
@@ -192,8 +190,14 @@
                                 
                                 lstString_OPtionValues.addAll(strNewValues.split('\n'));
                                 
+                                SelectOption firstOption = new SelectOption('', 'None');
+                                
+                                lstSelectOPtion_AddValues.add(firstOption);
+                                
                                 for(String strOPtionValues : lstString_OPtionValues) {
                                     
+                                    strOPtionValues = strOPtionValues.trim();
+                                     
                                     lstSelectOPtion_AddValues.add(new SelectOption(strOPtionValues,strOPtionValues));
                                 }
                             }
@@ -203,7 +207,7 @@
                             lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
                         }
                         
-                        lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues, ''));
+                        lstOfQA_On_OpportunityWrapper.add(new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name ,objAnswer,mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues));
                         
                         mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, lstOfQA_On_OpportunityWrapper);
                         
@@ -220,6 +224,10 @@
                                 
                                 lstString_OPtionValues.addAll(strNewValues.split('\n'));
                                 
+                                SelectOption firstOption = new SelectOption('', 'None');
+                                
+                                lstSelectOPtion_AddValues.add(firstOption);
+                                
                                 for(String strOPtionValues : lstString_OPtionValues) {
                                     
                                     strOPtionValues = strOPtionValues.trim();
@@ -233,7 +241,7 @@
                             lstSelectOPtion_AddValues.add(new SelectOption('None', 'None'));
                         }
                         
-                        QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues, '');
+                        QA_OpportunityWrapperClass objNewWrapper = new QA_OpportunityWrapperClass(objAnswer.Realated_Products__r.Name, objAnswer, mapQuestionId_Question.get(objAnswer.Question__c), objAnswer.Question__r.Question_Type__c, false, lstSelectOPtion_AddValues);
                         mapProductName_Wrapper.put(objAnswer.Realated_Products__r.Name, new List<QA_OpportunityWrapperClass>{objNewWrapper});
                         
                     }
@@ -243,7 +251,6 @@
         catch(Exception e) {
             
             system.debug('*****Exception****'+e);
-            
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, string.valueof(e)));
         }
     }

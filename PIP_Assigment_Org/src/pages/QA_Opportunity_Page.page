@@ -204,7 +204,8 @@
 	        				|
 	        				<a href="" class="cursorPointer colorGreen textDecorartion" title="Question:" onClick="QA_OPPORTUNITY.getProperAnswer(this)" >
 	        					Answered : <apex:outputText styleClass="cursorPointer colorGreen textDecorartion" label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="properAnswer" /> 
-	        				</a> | 
+	        				</a>
+	        				| 
 	        				<a href="" class="cursorPointer colorRed textDecorartion" title="Answerd:" onClick="QA_OPPORTUNITY.getPendingAnswer(this)">
 	        					Pending : <apex:outputText styleClass="cursorPointer colorRed textDecorartion" label="Question Answerd" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="pendingAnswer" /> 
 	        				</a> 
