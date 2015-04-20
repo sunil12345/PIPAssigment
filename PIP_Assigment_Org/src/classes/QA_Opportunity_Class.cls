@@ -1,6 +1,6 @@
 /**
   Name: QA_Opportunity_Class
-  Description: Page for displaying the Q&A on page 
+  Description: Controller for displaying the Q&A on page 
   Created By: Sunil Pal
   Last Modified By: Sunil Pal
  */
