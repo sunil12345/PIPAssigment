@@ -1,85 +1,170 @@
 <apex:page extensions="QA_Opportunity_Class" standardcontroller="Opportunity" sidebar="false"  >
 	
-	<img src="/s.gif" alt="Opportunity" class="pageTitleIcon" title="Opportunity"/>
-	
  	<script type="text/javascript" src="{!URLFOR($Resource.Jquery)}"></script>
-<!--   	<apex:includeScript value="{!URLFOR($Resource.js, '/js/jquery.js')}"/> -->
-<!--     <apex:includeScript value="{!URLFOR($Resource.js, '/js/scroll.js')}"/> -->
     
     <script type="text/javascript" >   
     
-    var $ = jQuery.noConflict();
+    	var $ = jQuery.noConflict();
     
-     var QA_OPPORTUNITY = function(){ 
-     
-     	var init = function(strOpportunityId) {
-     		
-     		
-     		console.log('*****strOpportunityId****'+strOpportunityId);
-     	}
-     	
-     	var goToOpportunity = function(strOpportunityId) {
-     		
-     		window.open('/' + strOpportunityId);
-     	}
-     	
-     	var SaveAnswer = function() {
-     		
-     		console.log('*****Check****','{!mapProductName_Wrapper}');
-     		saveAnserRecords();
-     	}
-     	
-     	var CancelAnswer = function() {
-     		 
-     		location.reload(true);
-     	}
-     	
-     	return {
-            
-			init: init,
-			goToOpportunity : goToOpportunity,
-			SaveAnswer : SaveAnswer,
-			CancelAnswer : CancelAnswer
-        }        
-     }();
-    
-	$(document).ready(function(){
-		console.log('enters');
-
-		QA_OPPORTUNITY.init('{!strOpportunityId}');
-            
-	});
-	
-        
+	    var QA_OPPORTUNITY = function(){ 
+	     
+	     	var goToOpportunity = function(strOpportunityId) {
+	     		
+	     		window.open('/' + strOpportunityId);
+	     	}
+	     	
+	     	var saveAnswer = function() {
+	     		
+	     		saveAnserRecords();
+	     	}
+	     	
+	     	var getProperAnswer = function(elem) {
+	     		
+	     		$('.cursorPointer').removeClass('boldClass');
+	     		$(elem).addClass('boldClass');
+	     		relatedRecords('ANSWER');
+	     	}
+	     	var getPendingAnswer = function(elem) {
+	     		
+	     		$('.cursorPointer').removeClass('boldClass');
+	     		$(elem).addClass('boldClass');
+	     		relatedRecords('PENDING');
+	     	}
+	     	var getTotalQuestion = function(elem) {
+	     		
+	     		$('.cursorPointer').removeClass('boldClass');
+	     		$(elem).addClass('boldClass');
+	     		relatedRecords('ALL');
+	     	}
+	     	var cancelAnswer = function() {
+	     		 
+	     		location.reload(true);
+	     	}
+	     	
+	     	return {
+	            
+				goToOpportunity : goToOpportunity,
+				saveAnswer : saveAnswer,
+				cancelAnswer : cancelAnswer,
+				getProperAnswer : getProperAnswer,
+				getPendingAnswer : getPendingAnswer,
+				getTotalQuestion : getTotalQuestion
+	        }        
+	     }();
+	    
     </script>
      <style>
-      .opportunity {
-        margin:20px 0px;
-        padding:10px;
-        font-size:18px;
-        background-color:#f7f7f7;
-        border:1px solid #ccc;
-      }
+     
+	      .opportunity {
+	        margin:20px 0px;
+	        padding:10px;
+	        font-size:18px;
+	        background-color:#f7f7f7;
+	        border:1px solid #ccc;
+	      }
+	      
+	      .loadingDiv {
+	      
+	      	position:absolute; 
+	        left:1px; top:1px; 
+	        width:100%; 
+	        height:100%; 
+	        text-align:center; 
+	        vertical-align: middle; 
+	        background-color: #dcdcdc; 
+	        opacity:0.7;
+	        filter:alpha(opacity=60);
+	        z-index: 999;
+	      }
+	      
+	      .waitingSearchDiv {
+	      	
+	      	width: 100%; 
+	      	height: 80%; 
+	      	display: ''; 
+	      }
+	      
+	      .waitingHolder {
+	      	
+	      	width: 144px;
+	      	vertical-align: middle;
+	      }
+	      
+	      .loadingTable {
+	      	
+	      	width: 100%; 
+	      	height: 30%
+	      }
+	      
+	      .waitingSearchDiv {
+	      	
+	      	width: 100%; 
+	      	height: 100%; 
+	      	display: ''; 
+	      }
+	      
+	      .linkOpportunityClass {
+	      	
+	      	cursor:pointer; 
+	      	color:cornflowerblue; 
+	      	font-size: initial;
+	      	text-decoration: none !important;
+	      	font-size: medium !important;
+	      }
+	      
+	      #headingDiv {
+	      
+	      	padding-bottom: 5%;
+	      	float: right;
+	      	margin-right: 5%; 
+	      }
+	      
+	      .textDecorartion {
+	      	
+	      	  text-decoration: none !important;
+	      }
+	      
+	      .boldClass{
+	      	
+	      	font-weight: bold;
+	      }
+	      
+	      .fontMedium {
+	      	
+	      	font-size: medium !important;
+	      }
+	      .cursorPointer {
+	      
+	      	cursor: pointer !important;
+	      }
+	      
+	      .colorBlack {
+	      
+	      	color: black !important;
+	      }
+	      
+	      .colorGreen {
+	      	
+	      	color: green !important;
+	      }
+	      
+	      .colorRed {
+	      	
+	      	color: red !important;
+	      }
     </style>
     
     <apex:form id="formId">
     	
     	<apex:actionstatus id="loading" startText="Requesting...">
             <apex:facet name="start">
-                <div    id="salesforceSource_blurybackground" style="position:absolute; 
-                        left:1px; top:1px; width:100%; height:100%; text-align:center; 
-                        vertical-align: middle; background-color: #dcdcdc; opacity:0.7;
-                        filter:alpha(opacity=60);z-index: 999;">
+                <div id="salesforceSource_blurybackground" class="loadingDiv" >
                 </div>
-                <div id="ManageMembersViewport_loading" class="waitingSearchDiv" 
-                     style="width: 100%; height: 80%; display: ''; ">
+                <div id="ManageMembersViewport_loading" class="waitingSearchDiv">
                             
-                    <div style="width: 144px;vertical-align: middle;" class="waitingHolder">
-                    
-                        <table  align="center" valign="top" style="width: 100%; height: 30%">
-                        
-                            <tr align="center" valign="top" style="width: 100%; height: 30%">
-                                    
+                    <div class="waitingHolder">
+                        <table  class="loadingTable" align="center" valign="top" >
+                            <tr align="center" valign="top" class="loadingTable">
                                 <td valign="top">
                                     <img src="/img/loading.gif"/>
                                     <span class="waitingDescription"><b>Loading...</b></span>
@@ -88,114 +173,101 @@
                         </table>
                     </div> 
                 </div>
-                    
-                <div id="ManageMembersViewport_loading" class="waitingSearchDiv" style="width: 100%; height: 100%; display: ''; "/>
-                     
-                <script>
-                    document.getElementById('ManageMembersViewport_loading').height = window.innerHeight * (3/4);
-                </script>
-                
+                <div id="ManageMembersViewport_loading" class="waitingSearchDiv" />
             </apex:facet>
-            <apex:facet name="stop"></apex:facet>
         </apex:actionstatus>
         
-    	<div>
-			<apex:outputPanel id="HeaderPanel">
-				<div> 
-					<span>
-	                	<b> <h1 id="heading" style="font-size: initial;"> 
-	                        Questions And Answers For </h1> 
-		                    <apex:outPutPanel >
-							<a href="" onclick="QA_OPPORTUNITY.goToOpportunity('{!strOpportunityId}')" style="cursor:pointer; color:cornflowerblue; font-size: initial;">{!strOpportunityName}</a>
-		                    </apex:outPutPanel>
-	                     
-	                    </b>  
-					</span>
-				</div>
-				
-				<apex:outputPanel id="HeaderPanel_Indicator">
-					<div style="padding-bottom: 5%;float: right;margin-right: 5%; " id="headingDiv">
-						<b> <h1 id="heading" style="font-size: initial;"> 
-		                       Status For Answerd/Unanswerd: </h1> 
-		                <div >        
-	                    	Questions Answerd: <apex:inputField styleClass="required " label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="proerAnswer" /> 
-	                    </div>
-	                    <div >    
-	                    	Questions Pending:<apex:inputField styleClass="required " label="Question Pending" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="blankAnswer" />
-	                    </div>
-	                    </b>    
-					</div>
-				</apex:outputPanel>
-			</apex:outputPanel>    
-    	</div>
-    	
-    	<apex:pageBlock title="Q&A" mode="edit" >
-    		
-    		 <apex:pageBlockButtons id="pageBlockButton" >
-    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.SaveAnswer()" value="Save" id="idButton_Save"/>
-    	 	
-    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.CancelAnswer()" value="Cancel" id="idButton_cancel"/>
-    	 	
-    	 	</apex:pageBlockButtons> 
-    	 
-    		<apex:outPutPanel id="ErrorMessage" rendered="{!if(isOLIPresent == false, true, false)}">
-    			
-    			<div>
-    				<b> <h1 id="heading" style="font-size: initial;"> 
-    					
-    						NO PRODUCTS ARE AVAILABLE HERE!!!!!	 
-    					</h1> 
-    				</b>
-    			</div>
-    		</apex:outPutPanel>
-    		
-    		<apex:outPutPanel id="dataPanel" rendered="{!if(isOLIPresent == true, true, false)}">
-   					<apex:outPutPanel >
-   						<apex:repeat value="{!mapProductName_Wrapper}" var="item">
-   							<div class="opportunity">
-   								<apex:outputText value="{!item}" id="productId" /> 
-   							</div>
-   							<apex:repeat value="{!mapProductName_Wrapper[item]}" var="values">
-   								<li>
-		                         	<p>
-		                         		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide" />
-		                         		<p>
-		                         			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}">
-		                         			
-			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}" style="padding-left: 5%;">
-			                         				
+        <apex:pagemessages id="msgId"/>
+        
+        <apex:outputPanel rendered="{!!hasError}">
+        
+        	<apex:outputPanel id="HeaderPanel">
+			
+	        	<div class="bPageTitle">
+	        		<div class="ptBody">
+	        			<div class="content">
+	        				<img src="/s.gif" alt="Opportunity" class="pageTitleIcon" title="Opportunity"/>
+	        				<h1 class="pageType"><apex:outputText value="Q & A Report For" /> 
+	        					<span class="titleSeparatingColon">:</span>
+	        				</h1>
+	        				<h2 class="pageDescription "> 
+	        					<a href="" onclick="QA_OPPORTUNITY.goToOpportunity('{!objOpportunity.Id}')" class="linkOpportunityClass" >{!objOpportunity.Name}
+	        					</a>
+	        				</h2>
+	        				<div class="blank">&nbsp;
+	        				</div>
+	        			</div>
+	        			<div class="links fontMedium">
+	        				<a href="" class="cursorPointer colorBlack textDecorartion boldClass" title="Total Question " onClick="QA_OPPORTUNITY.getTotalQuestion(this)">
+	        					Total : <apex:outputText styleClass="cursorPointer colorBlack textDecorartion" value="{!intSumTotalQuestion}" id="totalAnswer" /> 
+	        				</a> 
+	        				|
+	        				<a href="" class="cursorPointer colorGreen textDecorartion" title="Question:" onClick="QA_OPPORTUNITY.getProperAnswer(this)" >
+	        					Answered : <apex:outputText styleClass="cursorPointer colorGreen textDecorartion" label="Question Answerd" value="{!objOpportunity.Calculate_ProperAnswer__c}" id="properAnswer" /> 
+	        				</a> | 
+	        				<a href="" class="cursorPointer colorRed textDecorartion" title="Answerd:" onClick="QA_OPPORTUNITY.getPendingAnswer(this)">
+	        					Pending : <apex:outputText styleClass="cursorPointer colorRed textDecorartion" label="Question Answerd" value="{!objOpportunity.Calculate_BlankQuestion__c}" id="pendingAnswer" /> 
+	        				</a> 
+	        			</div>
+	        		</div>
+	        	</div>
+        	</apex:outputPanel> 
+	    	<apex:pageBlock mode="edit" >
+	    		
+				<apex:pageBlockButtons id="pageBlockButton" >
+	    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.saveAnswer()" value="Save" id="idButton_Save"/>
+	    	 		<input type="button" class="btn " onclick="QA_OPPORTUNITY.cancelAnswer()" value="Reset" id="idButton_cancel"/>
+    	 		</apex:pageBlockButtons> 
+	    	 
+	    		<apex:outPutPanel id="dataPanel" rendered="{!if(isOLIPresent == true, true, false)}">
+	   				<apex:outPutPanel >
+	   					<apex:repeat value="{!mapProductName_Wrapper}" var="item">
+	   						<div class="opportunity">
+	   							<apex:outputText value="{!item}" id="productId" /> 
+	   						</div>
+	   						<apex:repeat value="{!mapProductName_Wrapper[item]}" var="values">
+	   							<li>
+			                       	<p>
+			        	           		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide" />
+		            	           			<p>
+			                	       			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}">
+				                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}" style="padding-left: 5%;">
 			                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}" />
-			                         			</apex:outPutPanel>
-			                         			
+				                         		</apex:outPutPanel>
+				                         			
 			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}" style="padding-left: 5%;">
 													<apex:selectRadio value="{!values.objAnswer.Answer_Given__c}">
 												          <apex:selectOption itemLabel="Yes" itemValue="YES"></apex:selectOption>
 												          <apex:selectOption itemLabel="No" itemValue="NO"></apex:selectOption>
 												    </apex:selectRadio>
 			                         			</apex:outPutPanel>
+				                         			
 			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='picklist',values.strType == 'Picklist'),true,false)}" style="padding-left: 5%;">
-			                         				
-<!-- 			                         				<apex:inputHidden value="{!values.lstSlectOption_Display}" /> -->
-			                         				
 			                         				<apex:selectList id="choseValue" value="{!values.objAnswer.Answer_Given__c}" size="1" >
 														<apex:selectOptions value="{!values.lstSlectOption_Display}" />
-													</apex:selectList>
+													</apex:selectList>		
 			                         			</apex:outPutPanel>
-		                         			</apex:outPutPanel>
+	                         				</apex:outPutPanel>
 		                         			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c != null, true, false)}">
 		                         				<apex:outputText value="{!values.objAnswer.Answer_Given__c}" id="answerId_Blank" style="padding-left: 5%;"/>
 		                         			</apex:outPutPanel>
-		                         		</p>
-   									</p>
-   								</li>
-   							</apex:repeat>
-   						</apex:repeat>
-					</apex:outPutPanel>
-    		</apex:outPutPanel>
-    	</apex:pageBlock>
-    	
-    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy" status="loading" onComplete="QA_OPPORTUNITY.CancelAnswer()" >
-    	</apex:actionFunction>
+			                       		</p>
+	   								</p>
+	   							</li>
+	   						</apex:repeat>
+	   					</apex:repeat> 
+					</apex:outPutPanel> 
+	    		</apex:outPutPanel>
+	    	</apex:pageBlock>
+	    	 
+	    	<apex:actionFunction name="saveAnserRecords" action="{!saveRecords}" rerender="dummy,msgId" status="loading" onComplete="QA_OPPORTUNITY.cancelAnswer()" >
+	    	</apex:actionFunction>
+	    	
+	    	<apex:actionFunction name="relatedRecords" action="{!queryRealtedAnswer}" rerender="dataPanel, msgId" status="loading">
+        		<apex:param name="checkStatus" value="" assignTo="{!strGetStatus}" />
+	    	</apex:actionFunction>
+	    	
+        </apex:outputPanel>
     	
     </apex:form>
 </apex:page>
