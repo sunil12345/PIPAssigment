@@ -8,6 +8,10 @@
 global with sharing class TBN_Entitlement_WebService {
 	
 	
+	/* 	IVR input which need to pass from IVR side 
+	 	1- Case Id 
+	 	2- Phone Number
+	*/ 
 	global class IVR {
 		
 		webservice String strCaseId;
@@ -15,7 +19,14 @@ global with sharing class TBN_Entitlement_WebService {
 	}
 	
 	
-	// Wrapper class for AccountInfo
+	/* 	Name : accountInfo
+	 	Description : Wrapper class contains the following information about Account
+	 					1- Account Name
+	 					2- Account Number
+	 					3- Account Phone
+	 					4- Account Fax
+	 					5- Account Account Source	
+	*/ 
 	global class accountInfo {
 		
 		webservice String strAccountName;
@@ -34,7 +45,14 @@ global with sharing class TBN_Entitlement_WebService {
 		}
 	}
 	
-	// Wrapper class for ContactInfo
+	/* 	Name : contactInfo
+	 	Description : Wrapper class contains the following information about Contact
+	 					1- Contact Name
+	 					2- Contact Phone
+	 					3- Contact Email
+	 					4- Contact Department
+	 					5- Contact AssistantName	
+	*/ 
 	global class contactInfo {
 		
 		webservice String strContactName;
@@ -53,7 +71,14 @@ global with sharing class TBN_Entitlement_WebService {
 		}	
 	}
 	
-	// Wrapper class for AssetInfo
+	/* 	Name : assetInfo
+	 	Description : Wrapper class contains the following information about Asset
+	 					1- Asset Name
+	 					2- Asset Quantity
+	 					3- Asset Status
+	 					4- Asset ContactId
+	 					5- Asset AccountId	
+	*/ 
 	global class assetInfo {
 	
 		webservice String strAssetname ;
@@ -72,7 +97,14 @@ global with sharing class TBN_Entitlement_WebService {
 		}
 	}
 	
-	// Wrapper class for entitlementInfo
+	/* 	Name : entitlementInfo
+	 	Description : Wrapper class contains the following information about Entitlement
+	 					1- Entitlement Name
+	 					2- Entitlement Status
+	 					3- Entitlement isPerIncident
+	 					4- Entitlement AssetId
+	 					5- Entitlement AccountId	
+	*/ 
 	global class entitlementInfo {
 	
 		webservice String strEntitlementName ;
@@ -91,6 +123,14 @@ global with sharing class TBN_Entitlement_WebService {
 		}
 	}
 	
+	/* 	Name : combineAllRecords_Wrapper
+	 	Description : Wrapper class used to combine all the other wrapper class like entitlementInfo, assetInfo etc
+	 					1- List<accountInfo>
+	 					2- List<contactInfo>
+	 					3- List<assetInfo>
+	 					4- List<entitlementInfo>
+	 					5- String Error	
+	*/ 
 	// Wrapper class for combine all the inside wrapper class
 	global class combineAllRecords_Wrapper {
 		
@@ -98,13 +138,15 @@ global with sharing class TBN_Entitlement_WebService {
 		webservice  List<contactInfo> lstContactInfo;
 		webservice  List<assetInfo> lstAssetrInfo;
 		webservice  List<entitlementInfo> lstEntitlementInfo;
+		webservice  String strError;
 		
-		global combineAllRecords_Wrapper (List<accountInfo> lstAccountInfo, List<contactInfo> lstContactInfo, List<assetInfo> lstAssetrInfo, List<entitlementInfo> lstEntitlementInfo ) {
+		global combineAllRecords_Wrapper (List<accountInfo> lstAccountInfo, List<contactInfo> lstContactInfo, List<assetInfo> lstAssetrInfo, List<entitlementInfo> lstEntitlementInfo, String strError ) {
 			
 			this.lstAccountInfo = lstAccountInfo;
 			this.lstContactInfo = lstContactInfo;
 			this.lstAssetrInfo= lstAssetrInfo;
 			this.lstEntitlementInfo = lstEntitlementInfo;
+			this.strError = strError;
 		}	
 	} 
 	
@@ -118,17 +160,19 @@ global with sharing class TBN_Entitlement_WebService {
  
 	webservice static combineAllRecords_Wrapper getCaseRelatedRecords(IVR IVRSection) {
 		
+		List<accountInfo> lstAccountInfo = new List<accountInfo>(); // List of accountInfo contains all the information related to account fields
+			
+		List<assetInfo> lstAssetInfo = new List<assetInfo>();	// List of assetInfo contains all the information related to asset fields
+			
+		List<entitlementInfo> lstEntitlementInfo = new List<entitlementInfo>(); // List of entitlementInfo contains all the information related to entitlement fields
+			
+		List<contactInfo> lstContactInfo = new List<contactInfo>(); // List of contactInfo contains all the information related to contact fields
+		
+		combineAllRecords_Wrapper objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo,  '');
+		
 		try {
 			
-			List<accountInfo> lstAccountInfo = new List<accountInfo>();
-			
-			List<assetInfo> lstAssetInfo = new List<assetInfo>();
-			
-			List<entitlementInfo> lstEntitlementInfo = new List<entitlementInfo>();
-			
-			List<contactInfo> lstContactInfo = new List<contactInfo>();
-			
-			if(IVRSection.strCaseId != null && IVRSection.strPhoneNumber != null) {
+			if(IVRSection.strCaseId != null ) {
 					
 				List<Case> lstCase = new List<Case>([	SELECT 	Reason, ParentId, Id, ContactId, CaseNumber, AssetId, AccountId,
 														Account.AccountNumber, Contact.MobilePhone, EntitlementId 
@@ -142,6 +186,7 @@ global with sharing class TBN_Entitlement_WebService {
 																		FROM Account
 																		WHERE Id =: lstCase[0].AccountId
 																	]) ;
+						
 					if(!lstAccount.isEmpty()) {
 						
 						accountInfo objAccountInfo  =  new accountInfo(lstAccount[0].Name, lstAccount[0].AccountNumber, lstAccount[0].Phone, lstAccount[0].Fax, lstAccount[0].AccountSource);
@@ -151,7 +196,6 @@ global with sharing class TBN_Entitlement_WebService {
 						for(Contact objContact : [	SELECT Id, Name, Email, Department, AssistantName, AccountId, Phone
 												 	FROM Contact
 												 	WHERE AccountId =: lstAccount[0].Id
-												 	AND Phone =:IVRSection.strPhoneNumber  
 												 ]) {
 							
 							if(objContact != null ) {
@@ -187,27 +231,121 @@ global with sharing class TBN_Entitlement_WebService {
 								lstEntitlementInfo.add(objEntitlementInfo);	
 							}
 						}								
-					}	
-				}									
+					}
+					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' ');	
+				}		
+				else {
+					
+					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record is not avilable');
+				}							
 			} 
-			
-			combineAllRecords_Wrapper objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo);
+			else if(IVRSection.strPhoneNumber != null && IVRSection.strCaseId == null) {
+				
+				getRcordsBasedOnPhone(IVRSection);
+			}
 			
 			return objCombine_Wrapper;
 		}
 		catch(Exception e) {
 			
 			system.debug('**** Exception ****'+e);
-			Error_Log__c objErrorLog = new Error_Log__c();
-			objErrorLog.Error_Description__c = string.valueOf(e);
-			objErrorLog.Error_Source__c = string.valueOf(e.getLineNumber());
-			objErrorLog.Error_Method_Name__c = 'getCaseRelatedRecords';
-			objErrorLog.Error_Date_Time__c = Date.today();
-			objErrorLog.Error_Type__c = string.valueOf(e.getTypeName());
+			
+			Error_Log__c objErrorLog = new Error_Log__c(Error_Description__c = string.valueOf(e)+'/'+string.valueOf(e.getLineNumber()), 
+														Error_Source__c = 'TBN_Entitlement_WebService',
+														Error_Method_Name__c = 'getCaseRelatedRecords', 
+														Error_Date_Time__c = Date.today(), 
+														Error_Type__c = string.valueOf(e.getTypeName()));
 			insert objErrorLog;
 			
-			return null;
+			objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, string.valueOf(e));
+			
+			return objCombine_Wrapper;
 		}
+	}
+	
+	
+	private static combineAllRecords_Wrapper getRcordsBasedOnPhone(IVR IVRSection) {
 		
+		List<accountInfo> lstAccountInfo = new List<accountInfo>(); // List of accountInfo contains all the information related to account fields
+	
+ 		List<assetInfo> lstAssetInfo = new List<assetInfo>();	// List of assetInfo contains all the information related to asset fields
+	
+ 		List<entitlementInfo> lstEntitlementInfo = new List<entitlementInfo>(); // List of entitlementInfo contains all the information related to entitlement fields
+	
+ 		List<contactInfo> lstContactInfo = new List<contactInfo>(); // List of contactInfo contains all the information related to contact fields
+ 
+ 		combineAllRecords_Wrapper objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo,  '');
+		 
+		try {
+			
+			map<String, Contact> mapContactId_Contact = new map<String, Contact>();
+		
+			for(Contact objContact : [	SELECT Id, Name, Email, Department, AssistantName, AccountId, Phone
+									 	FROM Contact
+									 	WHERE Phone =:IVRSection.strPhoneNumber  
+									 ]) {
+						
+				if(objContact != null ) {
+					
+					mapContactId_Contact.put(objContact.AccountId, objContact);
+					
+					contactInfo objContactInfo = new contactInfo(objContact.Name, objContact.Phone, objContact.Email, objContact.Department, objContact.AssistantName) ;
+					
+					lstContactInfo.add(objContactInfo);
+				}					 	
+			}
+			
+			List<Account> lstAccount = new List<Account>	([	SELECT Id, Name, Phone, Fax, AccountSource, AccountNumber
+																FROM Account
+																WHERE Id =: mapContactId_Contact.keySet()
+															]) ;
+			
+			if(!lstAccount.isEmpty()) {
+				
+				accountInfo objAccountInfo  =  new accountInfo(lstAccount[0].Name, lstAccount[0].AccountNumber, lstAccount[0].Phone, lstAccount[0].Fax, lstAccount[0].AccountSource);
+				
+				lstAccountInfo.add(objAccountInfo);
+				
+				for(Asset objAsset : [	SELECT Id, Name, AccountId, Status, Quantity, ContactId
+										FROM Asset
+										WHERE AccountId =: lstAccount[0].Id]) {
+																
+					if(objAsset != null ) {
+					
+						assetInfo objAssetInfo = new assetInfo(objAsset.Name, objAsset.Quantity, objAsset.Status, objAsset.ContactId, objAsset.AccountId );
+						
+						lstAssetInfo.add(objAssetInfo); 	
+					}
+				}
+				
+				for(Entitlement objEntitlement : [	SELECT Id, Name, AccountId, Status, IsPerIncident, AssetId 
+													FROM Entitlement
+													WHERE AccountId =: lstAccount[0].Id
+												]) {
+					
+					if(objEntitlement != null ){
+						
+						entitlementInfo objEntitlementInfo = new entitlementInfo(objEntitlement.Name, objEntitlement.Status, objEntitlement.IsPerIncident, objEntitlement.AssetId, objEntitlement.AccountId);
+						
+						lstEntitlementInfo.add(objEntitlementInfo);	
+					}
+				}
+				
+				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, '');
+			}
+			else {
+				
+				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record Not Found');
+			}
+			
+			return objCombine_Wrapper;
+		}
+		catch(Exception e) {
+			
+			system.debug('***** Exception *****'+e);
+			objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, string.valueOf(e));
+			
+			return objCombine_Wrapper;
+		} 
 	}
 }
