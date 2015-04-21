@@ -206,12 +206,14 @@ global with sharing class TBN_Entitlement_WebService {
 								
 								lstContactInfo.add(objContactInfo);
 							}
-							else {
-								
-								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No contact record is available!');
-							}			
 						}
 						
+						if(lstContactInfo.isEmpty()) {
+							
+							objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No contact record is available!');
+							
+							return objCombine_Wrapper;
+						}
 						for(Asset objAsset : [	SELECT Id, Name, AccountId, Status, Quantity, ContactId
 												FROM Asset
 												WHERE AccountId =: lstAccount[0].Id])	 {
@@ -222,11 +224,14 @@ global with sharing class TBN_Entitlement_WebService {
 								
 								lstAssetInfo.add(objAssetInfo); 	
 							}
-							else {
-								
-								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No asset record is available!');
-							}
 						}											 
+						
+						if(lstAssetInfo.isEmpty()) {
+							
+							objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No asset record is available!');
+							
+							return objCombine_Wrapper;
+						}
 						
 						for(Entitlement objEntitlement : [	SELECT Id, Name, AccountId, Status, IsPerIncident, AssetId 
 															FROM Entitlement
@@ -239,10 +244,12 @@ global with sharing class TBN_Entitlement_WebService {
 								
 								lstEntitlementInfo.add(objEntitlementInfo);	
 							}
-							else {
-								
-								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No entitlement record is available!');
-							}
+						}
+						if(lstAssetInfo.isEmpty()) {
+							
+							objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No entitlement record is available!');
+							
+							return objCombine_Wrapper;
 						}
 					}
 					else {
@@ -257,7 +264,7 @@ global with sharing class TBN_Entitlement_WebService {
 			} 
 			else {
 				
-				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, 'Case Id and phone number not there');
+				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, 'Something is missing caseid or phone number');
 			}
 			
 			return objCombine_Wrapper;
