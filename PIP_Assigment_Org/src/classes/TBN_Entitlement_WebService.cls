@@ -156,6 +156,7 @@ global with sharing class TBN_Entitlement_WebService {
 	  Parameter : IVRSection wrapper class 	(	1 - Case Id
 	  											2- 	Phone Number 
 	  										)
+	  Return type : combineAllRecords_Wrapper										
  	*/
  
 	webservice static combineAllRecords_Wrapper getCaseRelatedRecords(IVR IVRSection) {
@@ -263,6 +264,16 @@ global with sharing class TBN_Entitlement_WebService {
 		}
 	}
 	
+	
+	/*
+	  Name: getRcordsBasedOnPhone
+	  Description: webservice method which is called from getCaseRelatedRecords method for getting the result if phone number passed
+	  Parameter : IVRSection wrapper class 	(	1 - Case Id
+	  											2- 	Phone Number 
+	  										)
+	  Return type : combineAllRecords_Wrapper 										
+ 	*/
+ 	
 	private static combineAllRecords_Wrapper getRcordsBasedOnPhone(IVR IVRSection) {
 		
 		List<accountInfo> lstAccountInfo = new List<accountInfo>(); // List of accountInfo contains all the information related to account fields
