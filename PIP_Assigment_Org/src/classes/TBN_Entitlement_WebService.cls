@@ -172,8 +172,8 @@ global with sharing class TBN_Entitlement_WebService {
 		
 		try {
 			
-			if(IVRSection.strCaseId != null ) {
-					
+			if(IVRSection.strCaseId != null && IVRSection.strCaseId != '') {
+				
 				List<Case> lstCase = new List<Case>([	SELECT 	Reason, ParentId, Id, ContactId, CaseNumber, AssetId, AccountId,
 														Account.AccountNumber, Contact.MobilePhone, EntitlementId 
 														FROM Case
@@ -239,16 +239,16 @@ global with sharing class TBN_Entitlement_WebService {
 					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record is not avilable');
 				}							
 			} 
-			else if(IVRSection.strPhoneNumber != null && IVRSection.strCaseId == null) {
+			else if(IVRSection.strPhoneNumber != null && IVRSection.strPhoneNumber != '') {
 				
-				getRcordsBasedOnPhone(IVRSection);
+				objCombine_Wrapper = getRcordsBasedOnPhone(IVRSection);
 			}
 			
 			return objCombine_Wrapper;
 		}
 		catch(Exception e) {
 			
-			system.debug('**** Exception ****'+e);
+			system.debug('***** Exception *****'+e);
 			
 			Error_Log__c objErrorLog = new Error_Log__c(Error_Description__c = string.valueOf(e)+'/'+string.valueOf(e.getLineNumber()), 
 														Error_Source__c = 'TBN_Entitlement_WebService',
@@ -262,7 +262,6 @@ global with sharing class TBN_Entitlement_WebService {
 			return objCombine_Wrapper;
 		}
 	}
-	
 	
 	private static combineAllRecords_Wrapper getRcordsBasedOnPhone(IVR IVRSection) {
 		
@@ -282,9 +281,9 @@ global with sharing class TBN_Entitlement_WebService {
 		
 			for(Contact objContact : [	SELECT Id, Name, Email, Department, AssistantName, AccountId, Phone
 									 	FROM Contact
-									 	WHERE Phone =:IVRSection.strPhoneNumber  
+									 	WHERE Phone =: IVRSection.strPhoneNumber  
 									 ]) {
-						
+				
 				if(objContact != null ) {
 					
 					mapContactId_Contact.put(objContact.AccountId, objContact);
@@ -332,10 +331,11 @@ global with sharing class TBN_Entitlement_WebService {
 				}
 				
 				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, '');
+				
 			}
 			else {
 				
-				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record Not Found');
+				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record Not Found Here');
 			}
 			
 			return objCombine_Wrapper;
@@ -343,6 +343,14 @@ global with sharing class TBN_Entitlement_WebService {
 		catch(Exception e) {
 			
 			system.debug('***** Exception *****'+e);
+			
+			Error_Log__c objErrorLog = new Error_Log__c(Error_Description__c = string.valueOf(e)+'/'+string.valueOf(e.getLineNumber()), 
+														Error_Source__c = 'TBN_Entitlement_WebService',
+														Error_Method_Name__c = 'getCaseRelatedRecords', 
+														Error_Date_Time__c = Date.today(), 
+														Error_Type__c = string.valueOf(e.getTypeName()));
+			insert objErrorLog;
+			
 			objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, string.valueOf(e));
 			
 			return objCombine_Wrapper;
