@@ -173,7 +173,7 @@ global with sharing class TBN_Entitlement_WebService {
 		
 		try {
 			
-			if(IVRSection.strCaseId != null && IVRSection.strCaseId != '') {
+			if((IVRSection.strCaseId != null && IVRSection.strCaseId != '') && (IVRSection.strPhoneNumber != null && IVRSection.strPhoneNumber != '')) {
 				
 				List<Case> lstCase = new List<Case>([	SELECT 	Reason, ParentId, Id, ContactId, CaseNumber, AssetId, AccountId,
 														Account.AccountNumber, Contact.MobilePhone, EntitlementId 
@@ -197,6 +197,7 @@ global with sharing class TBN_Entitlement_WebService {
 						for(Contact objContact : [	SELECT Id, Name, Email, Department, AssistantName, AccountId, Phone
 												 	FROM Contact
 												 	WHERE AccountId =: lstAccount[0].Id
+												 	AND Phone =: IVRSection.strPhoneNumber
 												 ]) {
 							
 							if(objContact != null ) {
@@ -204,7 +205,11 @@ global with sharing class TBN_Entitlement_WebService {
 								contactInfo objContactInfo = new contactInfo(objContact.Name, objContact.Phone, objContact.Email, objContact.Department, objContact.AssistantName) ;
 								
 								lstContactInfo.add(objContactInfo);
-							}					 	
+							}
+							else {
+								
+								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No contact record is available!');
+							}			
 						}
 						
 						for(Asset objAsset : [	SELECT Id, Name, AccountId, Status, Quantity, ContactId
@@ -217,7 +222,10 @@ global with sharing class TBN_Entitlement_WebService {
 								
 								lstAssetInfo.add(objAssetInfo); 	
 							}
-																				
+							else {
+								
+								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No asset record is available!');
+							}
 						}											 
 						
 						for(Entitlement objEntitlement : [	SELECT Id, Name, AccountId, Status, IsPerIncident, AssetId 
@@ -231,122 +239,25 @@ global with sharing class TBN_Entitlement_WebService {
 								
 								lstEntitlementInfo.add(objEntitlementInfo);	
 							}
-						}								
+							else {
+								
+								objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No entitlement record is available!');
+							}
+						}
 					}
-					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' ');	
+					else {
+						
+						objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No account record is available!');
+					}
 				}		
 				else {
 					
-					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record is not avilable');
+					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record is not avilable for this caseId');
 				}							
 			} 
-			else if(IVRSection.strPhoneNumber != null && IVRSection.strPhoneNumber != '') {
-				
-				objCombine_Wrapper = getRcordsBasedOnPhone(IVRSection);
-			}
-			
-			return objCombine_Wrapper;
-		}
-		catch(Exception e) {
-			
-			system.debug('***** Exception *****'+e);
-			
-			Error_Log__c objErrorLog = new Error_Log__c(Error_Description__c = string.valueOf(e)+'/'+string.valueOf(e.getLineNumber()), 
-														Error_Source__c = 'TBN_Entitlement_WebService',
-														Error_Method_Name__c = 'getCaseRelatedRecords', 
-														Error_Date_Time__c = Date.today(), 
-														Error_Type__c = string.valueOf(e.getTypeName()));
-			insert objErrorLog;
-			
-			objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, string.valueOf(e));
-			
-			return objCombine_Wrapper;
-		}
-	}
-	
-	
-	/*
-	  Name: getRcordsBasedOnPhone
-	  Description: webservice method which is called from getCaseRelatedRecords method for getting the result if phone number passed
-	  Parameter : IVRSection wrapper class 	(	1 - Case Id
-	  											2- 	Phone Number 
-	  										)
-	  Return type : combineAllRecords_Wrapper 										
- 	*/
- 	
-	private static combineAllRecords_Wrapper getRcordsBasedOnPhone(IVR IVRSection) {
-		
-		List<accountInfo> lstAccountInfo = new List<accountInfo>(); // List of accountInfo contains all the information related to account fields
-	
- 		List<assetInfo> lstAssetInfo = new List<assetInfo>();	// List of assetInfo contains all the information related to asset fields
-	
- 		List<entitlementInfo> lstEntitlementInfo = new List<entitlementInfo>(); // List of entitlementInfo contains all the information related to entitlement fields
-	
- 		List<contactInfo> lstContactInfo = new List<contactInfo>(); // List of contactInfo contains all the information related to contact fields
- 
- 		combineAllRecords_Wrapper objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo,  '');
-		 
-		try {
-			
-			map<String, Contact> mapContactId_Contact = new map<String, Contact>();
-		
-			for(Contact objContact : [	SELECT Id, Name, Email, Department, AssistantName, AccountId, Phone
-									 	FROM Contact
-									 	WHERE Phone =: IVRSection.strPhoneNumber  
-									 ]) {
-				
-				if(objContact != null ) {
-					
-					mapContactId_Contact.put(objContact.AccountId, objContact);
-					
-					contactInfo objContactInfo = new contactInfo(objContact.Name, objContact.Phone, objContact.Email, objContact.Department, objContact.AssistantName) ;
-					
-					lstContactInfo.add(objContactInfo);
-				}					 	
-			}
-			
-			List<Account> lstAccount = new List<Account>	([	SELECT Id, Name, Phone, Fax, AccountSource, AccountNumber
-																FROM Account
-																WHERE Id =: mapContactId_Contact.keySet()
-															]) ;
-			
-			if(!lstAccount.isEmpty()) {
-				
-				accountInfo objAccountInfo  =  new accountInfo(lstAccount[0].Name, lstAccount[0].AccountNumber, lstAccount[0].Phone, lstAccount[0].Fax, lstAccount[0].AccountSource);
-				
-				lstAccountInfo.add(objAccountInfo);
-				
-				for(Asset objAsset : [	SELECT Id, Name, AccountId, Status, Quantity, ContactId
-										FROM Asset
-										WHERE AccountId =: lstAccount[0].Id]) {
-																
-					if(objAsset != null ) {
-					
-						assetInfo objAssetInfo = new assetInfo(objAsset.Name, objAsset.Quantity, objAsset.Status, objAsset.ContactId, objAsset.AccountId );
-						
-						lstAssetInfo.add(objAssetInfo); 	
-					}
-				}
-				
-				for(Entitlement objEntitlement : [	SELECT Id, Name, AccountId, Status, IsPerIncident, AssetId 
-													FROM Entitlement
-													WHERE AccountId =: lstAccount[0].Id
-												]) {
-					
-					if(objEntitlement != null ){
-						
-						entitlementInfo objEntitlementInfo = new entitlementInfo(objEntitlement.Name, objEntitlement.Status, objEntitlement.IsPerIncident, objEntitlement.AssetId, objEntitlement.AccountId);
-						
-						lstEntitlementInfo.add(objEntitlementInfo);	
-					}
-				}
-				
-				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, '');
-				
-			}
 			else {
 				
-				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record Not Found Here');
+				objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, 'Case Id and phone number not there');
 			}
 			
 			return objCombine_Wrapper;
@@ -365,6 +276,9 @@ global with sharing class TBN_Entitlement_WebService {
 			objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, string.valueOf(e));
 			
 			return objCombine_Wrapper;
-		} 
+		}
 	}
+	
+	
+	
 }
