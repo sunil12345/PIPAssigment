@@ -178,7 +178,7 @@ global with sharing class TBN_Entitlement_WebService {
 				List<Case> lstCase = new List<Case>([	SELECT 	Reason, ParentId, Id, ContactId, CaseNumber, AssetId, AccountId,
 														Account.AccountNumber, Contact.MobilePhone, EntitlementId 
 														FROM Case
-														WHERE Id =: IVRSection.strCaseId
+														WHERE CaseNumber =: IVRSection.strCaseId
 													]);
 					
 				if(!lstCase.isEmpty()) {
@@ -186,6 +186,7 @@ global with sharing class TBN_Entitlement_WebService {
 					List<Account> lstAccount = new List<Account>	([	SELECT Id, Name, Phone, Fax, AccountSource, AccountNumber
 																		FROM Account
 																		WHERE Id =: lstCase[0].AccountId
+																		AND AccountNumber =: lstCase[0].CaseNumber
 																	]) ;
 						
 					if(!lstAccount.isEmpty()) {
@@ -255,11 +256,15 @@ global with sharing class TBN_Entitlement_WebService {
 					else {
 						
 						objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' No account record is available!');
+						
+						return objCombine_Wrapper;
 					}
 				}		
 				else {
 					
-					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Record is not avilable for this caseId');
+					objCombine_Wrapper = new combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, ' Records are not avilable for this caseId');
+					
+					return objCombine_Wrapper;
 				}							
 			} 
 			else {
@@ -285,7 +290,4 @@ global with sharing class TBN_Entitlement_WebService {
 			return objCombine_Wrapper;
 		}
 	}
-	
-	
-	
 }

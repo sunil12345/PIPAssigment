@@ -59,10 +59,10 @@ private class Test_QA_OpportunityClass {
         insert lstOLIs;
         
         List<Question__c> lstQuestion = new List<Question__c> { 
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type_Picklist__c = 'Text'),
-        								new Question__c(Name='Test_question2', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type_Picklist__c = 'Picklist'),
-        								new Question__c(Name='Test_question3', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type_Picklist__c = 'Radio'),
-        								new Question__c(Name='Test_question4', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type_Picklist__c = 'Text')
+        								new Question__c( Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type_Picklist__c = 'Text'),
+        								new Question__c(Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type_Picklist__c = 'Picklist'),
+        								new Question__c(Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type_Picklist__c = 'Radio'),
+        								new Question__c(Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type_Picklist__c = 'Text')
         };
         
         insert lstQuestion;
@@ -128,6 +128,10 @@ private class Test_QA_OpportunityClass {
 					        							WHERE Opportunity__c =: ObjOpportunity.Id
 					        							AND isAnswerGiven__c = false
 			        								];
+    	
+    	objOpportunity_QA_Class.strAnswerId = lstAnswer[0].Id;
+    	
+    	objOpportunity_QA_Class.editRecordsOnClick();
     	
     	ApexPages.StandardController sc1 = new ApexPages.standardController(ObjOpportunity);
     	
