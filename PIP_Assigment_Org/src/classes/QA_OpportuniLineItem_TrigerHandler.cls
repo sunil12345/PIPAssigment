@@ -151,27 +151,43 @@ public with sharing class QA_OpportuniLineItem_TrigerHandler {
 		
 		Map<String, Map<String, List<String>>> mapOpportunityId_Product_Question = new Map<String, Map<String, List<String>>>();		
  		
- 		Map<String, String> mapOppId_OppProduct = new Map<String, String>();
+ 		Map<String, List<String>> mapOppId_OppProduct = new Map<String, List<String>>();
+ 		
+ 		set<String> setProductId = new Set<String>();
+ 		
+ 		set<String> setProductGroupId = new Set<String>();
  		
  		Map<String, Answer__c> mapQuest_Answer = new Map<String, Answer__c>();
  		
  		for(OpportunityLineItem objOLI : mapOpportunityLineItem_New.values()) {
  			
- 			mapOppId_OppProduct.put(objOLI.OpportunityId, objOLI.Product2Id);
+ 			
+ 			if(mapOppId_OppProduct.containsKey(objOLI.OpportunityId)) {
+ 			
+ 				mapOppId_OppProduct.get(objOLI.OpportunityId).add(objOLI.Product2Id);
+ 			}
+ 			else {
+ 				
+ 				mapOppId_OppProduct.put(objOLI.OpportunityId, new List<String> {objOLI.Product2Id});
+ 			}	
+ 			
+ 			setProductId.add(objOLI.Product2Id);
  		}
  		
  		for(Product2 objProduct : 	[	SELECT Id, Name, Product_Group__c 
  										FROM Product2
- 										WHERE Id IN : mapOppId_OppProduct.values()
+ 										WHERE Id IN : setProductId
  										AND Product_Group__c <> null
  									]) {
  			
  			mapProductId_GroupId.put(objProduct.Id, objProduct.Product_Group__c);
+ 			
+ 			setProductGroupId.add(objProduct.Product_Group__c);
 		}
 		
 		for(Question__c objQuestion : 	[	SELECT Id, Name, Product_Group__c
 											FROM Question__c
-											WHERE Product_Group__c IN: mapProductId_GroupId.values()
+											WHERE Product_Group__c IN: setProductGroupId
 										]){
 			
 			if(mapGroupId_Question.containsKey(objQuestion.Product_Group__c)) {

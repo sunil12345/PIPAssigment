@@ -59,10 +59,10 @@ private class Test_QA_OpportunityClass {
         insert lstOLIs;
         
         List<Question__c> lstQuestion = new List<Question__c> { 
-        								new Question__c(Name='Test_question1', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type_Picklist__c = 'Text'),
-        								new Question__c(Name='Test_question2', Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type_Picklist__c = 'Picklist'),
-        								new Question__c(Name='Test_question3', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type_Picklist__c = 'Radio'),
-        								new Question__c(Name='Test_question4', Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type_Picklist__c = 'Text')
+        								new Question__c( Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test1', Question_Asked__c = 'Testing is going On text?', Question_Type_Picklist__c = 'Text'),
+        								new Question__c(Product_Group__c = lstProductGroup[0].Id, Picklist_Values_Defined__c = 'Test2', Question_Asked__c = 'Testing is going On picklist ?', Question_Type_Picklist__c = 'Picklist'),
+        								new Question__c(Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test3', Question_Asked__c = 'Testing is going On radio ?', Question_Type_Picklist__c = 'Radio'),
+        								new Question__c(Product_Group__c = lstProductGroup[1].Id, Picklist_Values_Defined__c = 'Test4', Question_Asked__c = 'Testing is going On text again?', Question_Type_Picklist__c = 'Text')
         };
         
         insert lstQuestion;
@@ -129,6 +129,10 @@ private class Test_QA_OpportunityClass {
 					        							AND isAnswerGiven__c = false
 			        								];
     	
+    	objOpportunity_QA_Class.strAnswerId = lstAnswer[0].Id;
+    	
+    	objOpportunity_QA_Class.editRecordsOnClick();
+    	
     	ApexPages.StandardController sc1 = new ApexPages.standardController(ObjOpportunity);
     	
     	QA_Opportunity_Class objOpportunity_QA_Class1 = new QA_Opportunity_Class(sc1);
@@ -136,6 +140,103 @@ private class Test_QA_OpportunityClass {
     	objOpportunity_QA_Class1.isOLIPresent = false;
     	
     	test.stopTest();  
+    	
+    }
+    
+    /*
+    	Name : test_TBN_WebService
+    	Description : test method for webservice
+    */
+    static testMethod void test_TBN_WebService() {
+    	
+    	Account objAccount = new Account(Name= 'TestWebService-Demo-Last', AccountNumber= 'AccountNmber', Phone= '112233', Fax ='1212', AccountSource = 'Web');
+		insert objAccount;
+		
+		Contact objContact = new Contact(LastName = 'TestContact-WebService-Demo', Phone='989876', AssistantName= 'Test_Assistant', Email= 'sun@trekbin.com', Department= 'Mechanical', AccountId = objAccount.Id);
+		insert objContact;
+		
+		Case objCase = new Case(AccountId= objAccount.Id, ContactId = objContact.Id, Status = 'New', Origin = 'Phone', Type= 'Mechanical');
+		insert objCase;
+    	
+    	
+    	List<Asset> lstAsset_Insert = 	new List<Asset>{
+										new Asset(AccountId= objAccount.Id, Name= 'TestAsset1', ContactId= objContact.Id, Status= 'Shipped', Quantity= 2),
+										new Asset(AccountId= objAccount.Id, Name= 'TestAsset2', ContactId= objContact.Id, Status= 'Shipped', Quantity= 5)
+										};
+	
+		insert lstAsset_Insert;
+		
+		List<Entitlement> lstEntitlement_Insert = 	new List<Entitlement>{
+													new Entitlement( Name = 'Test-Entitlemnt1', IsPerIncident= false, AssetId= lstAsset_Insert[0].Id, AccountId= objAccount.Id),
+													new Entitlement(Name = 'Test-Entitlemnt2', IsPerIncident = false, AssetId= lstAsset_Insert[0].Id, AccountId= objAccount.Id)
+													};
+		
+		insert lstEntitlement_Insert;
+		
+		List<Case> lstCase =  new List<Case>( 	[	SELECT Id, CaseNumber
+													FROM Case
+													WHERE Id =: objCase.Id
+												]);
+		
+		system.assertEquals(lstCase.size(), 1);
+    	
+		TBN_Entitlement_WebService.IVR objIVR = new TBN_Entitlement_WebService.IVR(lstCase[0].CaseNumber, '989876', 'AccountNmber');
+		
+		TBN_Entitlement_WebService.getCaseRelatedRecords(objIVR);
+    	
+    	List<Account> lstAccount = new List<Account> ( 	[	SELECT Id, Name, AccountNumber, Phone, Fax, AccountSource
+    														FROM Account
+    														WHERE AccountNumber =: objIVR.strAccountNumber
+    													]);
+    													
+    	
+    	TBN_Entitlement_WebService.accountInfo accountInfo = new TBN_Entitlement_WebService.accountInfo(lstAccount[0].Name, lstAccount[0].AccountNumber, lstAccount[0].Phone, lstAccount[0].Fax, lstAccount[0].AccountSource); 
+    	List<TBN_Entitlement_WebService.accountInfo> lstAccountInfo = new List<TBN_Entitlement_WebService.accountInfo>();
+    	lstAccountInfo.add(accountInfo); 
+    	
+    	List<Contact> lstContact = new List<Contact> ( 	[	SELECT Id, Name, Phone, Email, Department, AssistantName
+    														FROM Contact
+    														WHERE Phone =: objIVR.strPhoneNumber
+    													]);
+    	
+    	TBN_Entitlement_WebService.contactInfo contactInfo = new TBN_Entitlement_WebService.contactInfo(lstContact[0].Name, lstContact[0].Phone, lstContact[0].Email, lstContact[0].Department, lstContact[0].AssistantName );
+    	List<TBN_Entitlement_WebService.contactInfo> lstContactInfo = new List<TBN_Entitlement_WebService.contactInfo>();
+    	lstContactInfo.add(contactInfo); 
+    	
+    	
+    	List<Asset> lstAsset = new List<Asset> ( 	[	SELECT Id, Name, Quantity, Status, ContactId, AccountId
+														FROM Asset
+														WHERE AccountId =: lstAccount[0].Id
+													]);
+    	
+    	TBN_Entitlement_WebService.assetInfo assetInfo = new TBN_Entitlement_WebService.assetInfo(lstAsset[0].Name, lstAsset[0].Quantity, lstAsset[0].Status, lstAsset[0].ContactId, lstAsset[0].AccountId);
+    	List<TBN_Entitlement_WebService.assetInfo> lstAssetInfo = new List<TBN_Entitlement_WebService.assetInfo>();
+    	lstAssetInfo.add(assetInfo);
+    	
+    	List<Entitlement> lstEntitlement = new List<Entitlement> ( 	[	SELECT Id, Name, IsPerIncident, Status, AssetId, AccountId
+																		FROM Entitlement
+																		WHERE AccountId =: lstAccount[0].Id
+																	]);
+													
+													
+    	TBN_Entitlement_WebService.entitlementInfo entitlementInfo = new TBN_Entitlement_WebService.entitlementInfo(lstEntitlement[0].Name, lstEntitlement[0].Status , lstEntitlement[0].IsPerIncident , lstEntitlement[0].AssetId , lstEntitlement[0].AccountId);
+    	List<TBN_Entitlement_WebService.entitlementInfo> lstEntitlementInfo = new List<TBN_Entitlement_WebService.entitlementInfo>();
+		lstEntitlementInfo.add(entitlementInfo);
+		
+		
+		TBN_Entitlement_WebService.combineAllRecords_Wrapper objCombineAllWrapper = new TBN_Entitlement_WebService.combineAllRecords_Wrapper(lstAccountInfo, lstContactInfo, lstAssetInfo, lstEntitlementInfo, '');
+		
+    	TBN_Entitlement_WebService.IVR objIVRWithoutCaseId =  new TBN_Entitlement_WebService.IVR( null , '989876', '');
+    	
+    	TBN_Entitlement_WebService.getCaseRelatedRecords(objIVRWithoutCaseId);
+    	
+    	TBN_Entitlement_WebService.IVR objIVRWithoutPhoneId =  new TBN_Entitlement_WebService.IVR(lstCase[0].CaseNumber, null , '');
+    	
+    	TBN_Entitlement_WebService.getCaseRelatedRecords(objIVRWithoutPhoneId);
+    	
+    	TBN_Entitlement_WebService.IVR objIVRWithoutPhoneAndCaseId =  new TBN_Entitlement_WebService.IVR(null, null , '');
+    	
+    	TBN_Entitlement_WebService.getCaseRelatedRecords(objIVRWithoutPhoneAndCaseId);
     	
     }
 }
