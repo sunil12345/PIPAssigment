@@ -13,9 +13,7 @@
     
     public Boolean hasError                 	{get;set;}  // Used for checking the if any OLI is available for this opportunity
     
-    public String strGetStatus						{get;set;} // Used to get from which reason it is called Like for getting total, pending etc
-    
-    public String strAnswerId						{get;set;} // Used to get the those answer records need to edit
+    public String strGetStatus						{get;set;}
     
     public map<String, List<QA_OpportunityWrapperClass>> mapProductName_Wrapper         {get;set;} // Used for getting the product name with associated Questions and answers
     
@@ -58,7 +56,7 @@
         
         objOpportunity = new Opportunity();
         
-        strOpportunityId = strAnswerId = '';
+        strOpportunityId = '';
         strGetStatus = 'ALL';
         
         lstSelectOPtion = new List<SelectOption>();
@@ -81,10 +79,10 @@
         	}
         	else {
     		
-        		List<Opportunity> lstOpportunityQuery =  new List<Opportunity> ([   SELECT Id, Name, Calculate_BlankQuestion__c, Calculate_ProperAnswer__c
-     	                                                                        	FROM Opportunity
-      	                                                                        	WHERE Id =: strOpportunityId
-	           	                                         						]);
+	        	List<Opportunity> lstOpportunityQuery =     new List<Opportunity> ([    SELECT Id, Name, Calculate_BlankQuestion__c, Calculate_ProperAnswer__c
+	         	                                                                        FROM Opportunity
+	          	                                                                        WHERE Id =: strOpportunityId
+	           	                                         							]);
 	    		if(lstOpportunityQuery.isEmpty()) {
 	    			
 	    			ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, 'Opportuninty Id is not correct. Please use correct Id'));
@@ -158,7 +156,7 @@
             
             String strQuery = 'SELECT  Id, Name, Opportunity__c, Question__c, Realated_Products__c, Realated_Products__r.Name, '+ 
                               'Question__r.Name, Question__r.Question_Asked__c, Answer_Given__c, Question__r.Question_Type_Picklist__c, '+
-                              'Question__r.Picklist_Values_Defined__c, isAnswerGiven__c '+
+                              'Question__r.Picklist_Values_Defined__c '+
                               'FROM  Answer__c '+
                               'WHERE Opportunity__c =: strOpportunityId '+
                               'AND Question__c IN : setQuestionId';    
@@ -292,24 +290,5 @@
             ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error, string.valueof(e)));
             
         }
-    }
-    
-    
-    /*
-        Name : editRecordsOnClick
-        Type:  public
-        Description: Used to edit the record on click of output text
-    */
-    public void editRecordsOnClick() {
-    	
-    	List<Answer__c> lstAnswer = new List<Answer__c>([	SELECT Id, Name,  Answer_Given__c, isAnswerGiven__c
-    														FROM Answer__c
-    														WHERE Id =: strAnswerId	
-    													]); 
-    	Answer__c objAnswer = new Answer__c(Id = lstAnswer[0].Id);
-    	objAnswer.isAnswerGiven__c = false;
-    	
-    	update objAnswer;
-    	queryRealtedAnswer();												
     }
 }

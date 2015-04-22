@@ -41,12 +41,6 @@
 	     		location.reload(true);
 	     	}
 	     	
-	     	var editMode = function (elem){
-	     		
-	     		var className = $(elem).attr('class');
-	     		
-	     		callOnEdit(className);
-	     	} 
 	     	return {
 	            
 				goToOpportunity : goToOpportunity,
@@ -54,8 +48,7 @@
 				cancelAnswer : cancelAnswer,
 				getProperAnswer : getProperAnswer,
 				getPendingAnswer : getPendingAnswer,
-				getTotalQuestion : getTotalQuestion,
-				editMode : editMode
+				getTotalQuestion : getTotalQuestion
 	        }        
 	     }();
 	    
@@ -159,11 +152,6 @@
 	      	
 	      	color: red !important;
 	      }
-	      
-	      .paddinClass {
-	      
-	      	padding-left: 5%;
-	      }
     </style>
     
     <apex:form id="formId">
@@ -233,7 +221,7 @@
     	 		</apex:pageBlockButtons> 
 	    	 
 	    		<apex:outPutPanel id="dataPanel" rendered="{!if(isOLIPresent == true, true, false)}">
-	   				<apex:outPutPanel id="dataPanel_Inside">
+	   				<apex:outPutPanel >
 	   					<apex:repeat value="{!mapProductName_Wrapper}" var="item">
 	   						<div class="opportunity">
 	   							<apex:outputText value="{!item}" id="productId" /> 
@@ -243,29 +231,27 @@
 			                       	<p>
 			        	           		<apex:outputText value="{!values.objAnswer.Question__r.Question_Asked__c}" id="questionId" styleClass="isQuestionHide" />
 		            	           			<p>
-			                	       			<apex:outPutPanel rendered="{!If(values.objAnswer.isAnswerGiven__c == false, true, false)}">
-				                         			<apex:outPutPanel rendered="{!If(values.strType =='Text',true,false)}" styleClass="paddinClass">
+			                	       			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}">
+				                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='Text',values.strType == 'text'),true,false)}" style="padding-left: 5%;">
 			                         				<apex:inputTextarea value="{!values.objAnswer.Answer_Given__c}" id="answerId_Proper" styleClass="{!values.objQuestion.Question_Type_Picklist__c}" rendered="{!If(values.objAnswer.Answer_Given__c == null, true, false)}" />
 				                         		</apex:outPutPanel>
 				                         			
-			                         			<apex:outPutPanel rendered="{!If(values.strType == 'Radio',true,false)}" styleClass="paddinClass">
+			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='radio',values.strType == 'Radio'),true,false)}" style="padding-left: 5%;">
 													<apex:selectRadio value="{!values.objAnswer.Answer_Given__c}">
 												          <apex:selectOption itemLabel="Yes" itemValue="YES"></apex:selectOption>
 												          <apex:selectOption itemLabel="No" itemValue="NO"></apex:selectOption>
 												    </apex:selectRadio>
 			                         			</apex:outPutPanel>
 				                         			
-			                         			<apex:outPutPanel rendered="{!If(values.strType == 'Picklist',true,false)}" styleClass="paddinClass ">
+			                         			<apex:outPutPanel rendered="{!If(OR(values.strType =='picklist',values.strType == 'Picklist'),true,false)}" style="padding-left: 5%;">
 			                         				<apex:selectList id="choseValue" value="{!values.objAnswer.Answer_Given__c}" size="1" >
 														<apex:selectOptions value="{!values.lstSlectOption_Display}" />
 													</apex:selectList>		
 			                         			</apex:outPutPanel>
 	                         				</apex:outPutPanel>
-	                         				<apex:outputPanel id="outputText_Panel">
-			                         			<apex:outPutPanel rendered="{!If(values.objAnswer.isAnswerGiven__c == true, true, false)}" >
-			                         				<apex:inputText value="{!values.objAnswer.Answer_Given__c}" style="padding-left: 5%;border: 0px;background-color: rgb(250, 249, 249); "  styleClass="{!values.objAnswer}" onClick="QA_OPPORTUNITY.editMode(this)"/>
-			                         			</apex:outPutPanel>
-		                         			</apex:outputPanel>
+		                         			<apex:outPutPanel rendered="{!If(values.objAnswer.Answer_Given__c != null, true, false)}">
+		                         				<apex:outputText value="{!values.objAnswer.Answer_Given__c}" id="answerId_Blank" style="padding-left: 5%;"/>
+		                         			</apex:outPutPanel>
 			                       		</p>
 	   								</p>
 	   							</li>
@@ -282,9 +268,6 @@
         		<apex:param name="checkStatus" value="" assignTo="{!strGetStatus}" />
 	    	</apex:actionFunction>
 	    	
-	    	<apex:actionFunction name="callOnEdit" action="{!editRecordsOnClick}" rerender="dataPanel_Inside, HeaderPanel" >
-	    		<apex:param name="className" value="" assignTo="{!strAnswerId}" />
-	    	</apex:actionFunction>
         </apex:outputPanel>
     	
     </apex:form>
